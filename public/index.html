@@ -166,6 +166,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .mopt{padding:4px 12px;border-radius:16px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--text3);transition:all .2s;letter-spacing:.3px;}
 .mopt.active{background:var(--accent);color:var(--bg);font-weight:500;}
 .mopt:not(.active):hover{color:var(--text2);}
+.chips-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.chips-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);}
+.chips-ai-btn{background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;white-space:nowrap;}
+.chips-ai-btn:hover{border-color:var(--accent);color:var(--accent);}
+.chips-ai-btn:disabled{opacity:.4;cursor:not-allowed;}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
 .chip{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .chip:hover{border-color:var(--accent);color:var(--accent);}
@@ -283,7 +288,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         <div class="sample-chip" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
         <div class="sample-chip" onclick="loadSample('acme')">💣 Acme Corp</div>
         <div class="sample-chip" onclick="loadSample('starry')">🚀 Stark Industries</div>
-        <div class="sample-chip" onclick="loadSample('pawnee')">🏛️ Pawnee Parks</div>
+        <div class="sample-chip" onclick="loadSample('pawnee')">📄 Dunder Mifflin</div>
       </div>
     </div>
 
@@ -396,7 +401,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           </div>
           <span class="info-i">ⓘ<span class="tip"><strong>Concise:</strong> 3–5 bullet answers, fast reads.<br><br><strong>Extended:</strong> Full consulting narrative with frameworks and next steps.</span></span>
         </div>
-        <div class="chips">
+        <div class="chips-row">
+          <span class="chips-label">Suggested questions</span>
+          <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()" title="Generate questions tailored to your business">✨ Personalize</button>
+        </div>
+        <div class="chips" id="chipsContainer">
           <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
           <div class="chip" onclick="usePrompt(this)">Analyze my competitive position</div>
           <div class="chip" onclick="usePrompt(this)">How should I price my product?</div>
@@ -941,20 +950,21 @@ function safeDownload(content,filename,mime){
     }catch(e2){toast('Download not supported on this device.');}
   }
 }
-function safePrint(html){
+// ── PDF EXPORT — download as .html, open, print ───────────────
+// window.open() gets blocked as a popup. Instead we download a
+// self-contained HTML file the user opens and prints to PDF.
+function downloadHTML(html, filename){
   try{
-    const b64=btoa(unescape(encodeURIComponent(html)));
-    const win=window.open('data:text/html;base64,'+b64,'_blank');
-    if(!win)throw new Error('blocked');
-    setTimeout(()=>{try{win.print();}catch(e){}},600);
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    toast('📄 HTML downloaded — open it and Print → Save as PDF');
   }catch(e){
-    try{
-      const blob=new Blob([html],{type:'text/html'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');a.href=url;a.target='_blank';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      toast('Opened in new tab — use Print to save as PDF.');
-    }catch(e2){toast('PDF not supported here. Use TXT export.');}
+    toast('PDF export failed. Use TXT instead.');
   }
 }
 
@@ -966,8 +976,26 @@ function exportTXT(){
 }
 function exportPDF(){
   if(!report){toast('Generate a report first.');return;}
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 40px;color:#111;line-height:1.8;font-size:14px}h1{font-size:24px}h2{font-size:12px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;color:#8a6a2e;border-bottom:1px solid #e0d8cc;padding-bottom:5px;margin:26px 0 10px}strong{font-weight:600}ul{padding-left:20px}.meta{color:#888;font-size:11px;font-family:monospace;margin-bottom:30px}.disc{margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px}@media print{body{margin:0}}</style></head><body><h1>${report.focus} — ${report.company}</h1><div class="meta">${report.firm} Framework | ${report.date} | BizWiz</div>${SDEFS.map(s=>{const c=report.sections[s.key];return c?`<h2>${s.label}</h2><p>${c.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</p>`:''}).join('')}<div class="disc">⚠️ For educational purposes only. Not professional advice.</div></body></html>`;
-  safePrint(html);toast('Opening print view…');
+  const sectionsHtml = SDEFS.map(s=>{
+    const c=report.sections[s.key];
+    return c?`<h2>${s.label}</h2><p>${c.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</p>`:'';
+  }).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${report.focus} — ${report.company}</title><style>
+    body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 40px;color:#111;line-height:1.8;font-size:14px}
+    h1{font-size:24px;margin-bottom:4px}
+    h2{font-size:12px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;color:#8a6a2e;border-bottom:1px solid #e0d8cc;padding-bottom:5px;margin:26px 0 10px}
+    strong{font-weight:600}ul{padding-left:20px}li{margin:3px 0}
+    .meta{color:#888;font-size:11px;font-family:monospace;margin-bottom:30px;letter-spacing:1px}
+    .disc{margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px}
+    @media print{body{margin:0}button{display:none}}
+  </style></head><body>
+  <button onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;background:#8a6a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨️ Print / Save as PDF</button>
+  <h1>${report.focus} — ${report.company}</h1>
+  <div class="meta">${report.firm} Framework · ${report.date} · BizWiz</div>
+  ${sectionsHtml}
+  <div class="disc">⚠️ For educational purposes only. Not professional business, legal, or financial advice.</div>
+  </body></html>`;
+  downloadHTML(html, `bizwiz-report-${report.company.replace(/\s+/g,'-')}-${Date.now()}.html`);
 }
 function exportCSV(){
   if(!report){toast('Generate a report first.');return;}
@@ -1006,8 +1034,18 @@ function exportChatPDF(){
     const isU=m.role==='user';
     return `<div style="margin:16px 0;padding:12px 16px;border-radius:8px;background:${isU?'#f5f0e8':'#fafafa'};border-left:3px solid ${isU?'#8a6a2e':'#ccc'}"><div style="font-family:monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:5px">${isU?'You':firm+' Consultant'}</div><p>${m.content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</p></div>`;
   }).join('');
-  safePrint(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 40px;color:#111;font-size:14px;line-height:1.75}h1{font-size:20px}strong{font-weight:600}@media print{body{margin:0}}</style></head><body><h1>BizWiz Chat Transcript</h1><p style="font-family:monospace;font-size:11px;color:#888;margin-bottom:28px">${co} · ${firm} · ${date}</p>${msgs}<p style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px">⚠️ Educational use only. Not professional advice.</p></body></html>`);
-  toast('Opening print view…');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BizWiz Chat — ${co}</title><style>
+    body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 40px;color:#111;font-size:14px;line-height:1.75}
+    h1{font-size:20px}strong{font-weight:600}
+    @media print{body{margin:0}button{display:none}}
+  </style></head><body>
+  <button onclick="window.print()" style="margin-bottom:20px;padding:8px 16px;background:#8a6a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨️ Print / Save as PDF</button>
+  <h1>BizWiz Chat Transcript</h1>
+  <p style="font-family:monospace;font-size:11px;color:#888;margin-bottom:28px">${co} · ${firm} · ${date}</p>
+  ${msgs}
+  <p style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px">⚠️ Educational use only. Not professional advice.</p>
+  </body></html>`;
+  downloadHTML(html, `bizwiz-chat-${Date.now()}.html`);
 }
 function clearChat(){
   history=[];lsDel('bizwiz_chat');
@@ -1022,6 +1060,68 @@ function dismissDisc(){
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
+// ── CHIPS ─────────────────────────────────────────────────────
+const INDUSTRY_CHIPS = {
+  'Technology / SaaS':        ['How do we reduce churn?','What\'s our PLG strategy?','How do we expand upmarket?','Build a sales motion for enterprise'],
+  'Consumer Goods / Retail':  ['How do we compete with Amazon?','Should we go DTC or wholesale?','How do we build brand loyalty?','Optimize our pricing architecture'],
+  'Healthcare / Life Sciences':['How do we navigate regulatory risk?','What\'s our go-to-market for hospitals?','How do we build payer relationships?','Assess our competitive moat'],
+  'Financial Services':       ['How do we acquire customers profitably?','What\'s our fintech threat exposure?','How do we improve NPS?','Build a cross-sell strategy'],
+  'Media & Entertainment':    ['How do we monetize our audience?','Should we go subscription or ad-supported?','How do we compete with streaming giants?','Build a content strategy'],
+  'Manufacturing / Industrial':['How do we improve gross margins?','Should we vertically integrate?','How do we reduce supply chain risk?','Build a pricing strategy for commodities'],
+  'Professional Services':    ['How do we raise our rates?','Build a thought leadership strategy','How do we reduce client concentration?','What\'s our talent retention plan?'],
+  'E-commerce':               ['How do we reduce CAC?','What\'s our retention strategy?','How do we compete on price without a race to bottom?','Build a marketplace strategy'],
+  'Real Estate':              ['How do we navigate rising rates?','Should we diversify our portfolio?','How do we improve NOI?','Build a capital raise strategy'],
+  'Education':                ['How do we improve student outcomes?','What\'s our online learning strategy?','How do we build strategic partnerships?','Assess our competitive position'],
+  'Hospitality / Food & Bev': ['How do we compete with national chains?','Should we franchise?','How do we build digital loyalty?','Optimize our menu pricing strategy'],
+  'Non-profit':               ['How do we demonstrate ROI to donors?','Build a fundraising strategy','How do we reduce operating costs?','What\'s our community impact story?'],
+};
+
+const DEFAULT_CHIPS = ['How do I grow revenue?','Analyze my competitive position','How should I price my product?','Build a go-to-market plan','What are my biggest risks?'];
+
+function setChips(prompts){
+  const container = document.getElementById('chipsContainer');
+  if(!container) return;
+  container.innerHTML = prompts.map(p=>`<div class="chip" onclick="usePrompt(this)">${p}</div>`).join('');
+}
+
+function updateChipsFromProfile(){
+  const industry = document.getElementById('industry').value;
+  const company = document.getElementById('companyName').value.trim();
+  const chips = INDUSTRY_CHIPS[industry] || DEFAULT_CHIPS;
+  // If company name, prefix the first chip to feel personal
+  if(company && industry && INDUSTRY_CHIPS[industry]){
+    setChips(chips);
+  } else {
+    setChips(DEFAULT_CHIPS);
+  }
+}
+
+async function personalizeChips(){
+  if(!hasContext()){
+    toast('Fill in your business context first.');
+    openSidebarToContext();
+    return;
+  }
+  const btn = document.getElementById('personalizeBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+  try{
+    const ctx = getCtx();
+    const company = document.getElementById('companyName').value.trim() || 'this company';
+    const text = await callAPI([{role:'user',content:`Given this business context: ${ctx}\n\nGenerate exactly 4 short, specific, high-value consulting questions this business should be asking right now. Each question should be under 8 words, punchy, and specific to their situation. Return ONLY a JSON array of 4 strings, no other text.`}],'You are a senior strategy consultant. Return only valid JSON.',300);
+    const clean = text.replace(/```json|```/g,'').trim();
+    const questions = JSON.parse(clean);
+    if(Array.isArray(questions) && questions.length){
+      setChips(questions.slice(0,4));
+      toast(`✨ Questions tailored to ${company}`);
+    }
+  }catch(e){
+    toast('Could not personalize — try again.');
+  }
+  btn.disabled = false;
+  btn.textContent = '✨ Personalize';
+}
+
 const PKEY='bizwiz_profile';
 function saveProfile(){
   lsSet(PKEY,JSON.stringify({
@@ -1032,6 +1132,7 @@ function saveProfile(){
     challenge:document.getElementById('challenge').value,
     firm
   }));
+  updateChipsFromProfile();
   setInd('✓ Saved','var(--green)');toast('Profile saved ✓');
 }
 function loadProfile(){
@@ -1044,6 +1145,7 @@ function loadProfile(){
     if(p.revenue)document.getElementById('revenue').value=p.revenue;
     if(p.challenge)document.getElementById('challenge').value=p.challenge;
     if(p.firm){firm=p.firm;document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active',c.querySelector('.firm-name')?.textContent===p.firm));}
+    updateChipsFromProfile();
   }catch(e){}
 }
 function clearProfile(){
@@ -1051,6 +1153,7 @@ function clearProfile(){
   ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
   ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
   firm='McKinsey';document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
+  setChips(DEFAULT_CHIPS);
   setInd('Cleared','var(--text3)');toast('Profile cleared');
 }
 function setInd(msg,color){const el=document.getElementById('savedInd');el.textContent=msg;el.style.color=color;setTimeout(()=>el.textContent='',2500);}
@@ -1060,13 +1163,13 @@ const SAMPLES={
   krusty:{companyName:'Krusty Burger',industry:'Hospitality / Food & Bev',stage:'SMB (established)',revenue:'$10M – $50M',challenge:"We're a beloved regional fast food chain with 12 locations but sales have been flat for 3 years. A competitor (Burger Barn) opened nearby and is stealing our lunch crowd with lower prices and a trendy app. We need to modernize without losing our loyal regulars.",firm:'Bain'},
   acme:{companyName:'Acme Corporation',industry:'Manufacturing / Industrial',stage:'Enterprise / Large Corp',revenue:'$250M – $1B',challenge:"We manufacture 400+ SKUs (anvils, rocket skates, portable holes) with no clear focus. Margins are shrinking, our biggest customer keeps returning defective items, and we need a coherent growth strategy.",firm:'McKinsey'},
   starry:{companyName:'Stark Industries',industry:'Manufacturing / Industrial',stage:'Enterprise / Large Corp',revenue:'$1B+',challenge:"We dominate defense and aerospace but our CEO wants to pivot toward clean energy and commercial space. The board is skeptical, legacy defense contracts are still 80% of revenue, and our top engineering talent keeps getting poached by SpaceX and Blue Origin. How do we transition without losing our core business?",firm:'BCG'},
-  pawnee:{companyName:'Pawnee Parks & Rec',industry:'Non-profit',stage:'SMB (established)',revenue:'Pre-revenue',challenge:"We're a city parks department facing a 20% budget cut. We need to demonstrate measurable community value to the city council while launching a new after-school program this fall.",firm:'Deloitte'}
+  pawnee:{companyName:'Dunder Mifflin',industry:'Professional Services',stage:'SMB (established)',revenue:'$10M – $50M',challenge:"We're a regional paper and office supply company being crushed by Amazon Business and digital document adoption. Our sales team is our biggest asset but also our biggest cost. We need to figure out if we double down on relationship-driven sales, pivot to a niche, or find a way to digitize before we become irrelevant.",firm:'Deloitte'}
 };
 const SAMPLE_PROMPTS={
   krusty:['Why is Burger Barn beating us?','How do we build a loyalty app on a tight budget?','Should we franchise or go corporate-owned?','How do we modernize without losing regulars?'],
   acme:['How do we rationalize our 400+ SKU portfolio?','What\'s our best path to margin recovery?','Should we divest underperforming lines?','How do we fix our quality control problem?'],
   starry:['How do we reduce dependence on defense contracts?','How do we compete for talent against SpaceX?','What\'s the right clean energy entry strategy?','How do we manage a skeptical board?'],
-  pawnee:['How do we avoid the 20% budget cut?','What metrics prove community ROI for parks?','How do we launch the after-school program fast?','How do we build community coalition support?']
+  pawnee:['How do we compete with Amazon Business?','Should we double down on relationship sales?','How do we digitize before we become irrelevant?','What niche should we own?']
 };
 function loadSample(key){
   const b=SAMPLES[key];if(!b)return;
@@ -1080,13 +1183,10 @@ function loadSample(key){
   document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active',c.querySelector('.firm-name')?.textContent===b.firm));
   // Swap quick-prompt chips to context-aware ones
   const prompts=SAMPLE_PROMPTS[key];
-  if(prompts){
-    const chips=document.querySelector('.chips');
-    if(chips) chips.innerHTML=prompts.map(p=>`<div class="chip" onclick="usePrompt(this)">${p}</div>`).join('');
-  }
+  if(prompts) setChips(prompts);
   // Remove stale context nudge if present
   const nudge=document.getElementById('inlinNudge');if(nudge)nudge.remove();
-  const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'🏛️ Pawnee Parks'};
+  const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'📄 Dunder Mifflin'};
   toast(labels[key]+' loaded — ask away!');
   if(isMobile)document.getElementById('sidebar').classList.remove('open');
 }
