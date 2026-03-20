@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BizWiz — Strategy Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── THEME ─────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  --bg:#0a0a0b; --bg2:#111114; --bg3:#18181d; --bg4:#1f1f26;
+  --border:#2a2a35; --border2:#363645;
+  --text:#e8e8f0; --text2:#9898b0; --text3:#5a5a72;
+  --accent:#c8a96e; --accent2:#e8c98e;
+  --accent-bg:rgba(200,169,110,0.08); --accent-border:rgba(200,169,110,0.22);
+  --green:#5cb885; --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --input-bg:#13131a;
+}
+:root[data-theme="light"] {
+  --bg:#f4f2ee; --bg2:#edeae4; --bg3:#e5e1d8; --bg4:#dcd8ce;
+  --border:#ccc8be; --border2:#b8b4aa;
+  --text:#1a1a20; --text2:#4a4a5a; --text3:#8a8a9a;
+  --accent:#8a6a2e; --accent2:#6a4e1e;
+  --accent-bg:rgba(138,106,46,0.08); --accent-border:rgba(138,106,46,0.22);
+  --green:#3a9060; --shadow:0 4px 24px rgba(0,0,0,0.08);
+  --input-bg:#ede9e0;
+}
+
+/* ── RESET ─────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;transition:background .3s,color .3s;}
+
+/* ── HEADER ────────────────────────────────────────────────── */
+header{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:baseline;gap:6px;}
+.logo-word{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
+.logo-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;margin-bottom:2px;}
+.logo-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-left:4px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:6px 11px;border-radius:7px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── DISCLAIMER ─────────────────────────────────────────────── */
+.disc-bar{background:var(--bg4);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text3);line-height:1.4;}
+.disc-bar strong{color:var(--text2);}
+.disc-dismiss{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;flex-shrink:0;padding:0 2px;}
+.disc-dismiss:hover{color:var(--text2);}
+
+/* ── LAYOUT ─────────────────────────────────────────────────── */
+.app{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - 97px);}
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;height:auto;}
+  .sidebar{display:none;}
+  .sidebar.open{display:flex;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;overflow-y:auto;padding-top:60px;}
+}
+
+/* ── SIDEBAR ────────────────────────────────────────────────── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:18px;gap:16px;}
+.sec-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:4px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+label{font-size:12px;font-weight:500;color:var(--text2);}
+/* 16px minimum prevents iOS zoom on focus */
+input,select,textarea{background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:16px;transition:border .2s;width:100%;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+select option{background:var(--bg3);}
+textarea{resize:vertical;min-height:80px;font-size:16px;}
+.divider{height:1px;background:var(--border);}
+
+/* ── SAMPLE CHIPS ───────────────────────────────────────────── */
+.sample-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.sample-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.sample-chip{display:flex;align-items:center;gap:5px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;}
+.sample-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+
+/* ── PERSONA GRID ───────────────────────────────────────────── */
+.persona-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.persona-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 8px;cursor:pointer;transition:all .2s;text-align:center;}
+.persona-card:hover{border-color:var(--accent);}
+.persona-card.active{border-color:var(--accent);background:var(--accent-bg);}
+.firm-name{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--accent);}
+.firm-desc{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* ── PROFILE BUTTONS ────────────────────────────────────────── */
+.profile-actions{display:flex;gap:7px;margin-top:8px;}
+.profile-btn{flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:8px 10px;border-radius:7px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;text-align:center;}
+.profile-btn:hover{border-color:var(--accent);color:var(--accent);}
+.saved-ind{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:center;margin-top:4px;min-height:14px;}
+
+/* ── GENERATE BUTTON ────────────────────────────────────────── */
+.gen-btn{background:var(--accent);color:var(--bg);border:none;padding:12px 20px;border-radius:9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;transition:all .2s;width:100%;margin-top:6px;}
+.gen-btn:hover{opacity:.85;}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── TOOLTIP ────────────────────────────────────────────────── */
+.info-i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:var(--bg4);border:1px solid var(--border2);border-radius:50%;font-size:9px;color:var(--text3);cursor:pointer;position:relative;vertical-align:middle;margin-left:4px;font-style:normal;flex-shrink:0;transition:all .2s;text-transform:none;letter-spacing:0;}
+.info-i:hover{border-color:var(--accent);color:var(--accent);}
+.info-i .tip{display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;font-size:11.5px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--text2);width:210px;line-height:1.55;z-index:300;pointer-events:none;box-shadow:var(--shadow);white-space:normal;text-align:left;text-transform:none;letter-spacing:0;}
+.info-i:hover .tip{display:block;}
+
+/* ── MAIN ───────────────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative;}
+@media(max-width:768px){.main{height:calc(100vh - 97px);}}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 12px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-align:center;}
+.tab-label{font-size:13px;font-weight:600;color:var(--text3);display:flex;align-items:center;gap:5px;transition:color .2s;}
+.tab-sub{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:.3px;transition:color .2s;margin-top:2px;}
+.tab.active{border-bottom-color:var(--accent);}
+.tab.active .tab-label{color:var(--accent);}
+.tab.active .tab-sub{color:var(--accent);opacity:.7;}
+
+/* ── CHAT PANEL ─────────────────────────────────────────────── */
+.chat-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.chat-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.tbtn{display:flex;align-items:center;gap:4px;background:none;border:1px solid var(--border);color:var(--text3);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;}
+.tbtn:hover{border-color:var(--accent);color:var(--accent);}
+.tbtn:disabled{opacity:.3;cursor:not-allowed;}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;}
+
+/* ── MESSAGES ───────────────────────────────────────────────── */
+.msg{display:flex;gap:10px;animation:fadeUp .3s ease;}
+.msg.user{flex-direction:row-reverse;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.avatar.ai{background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent);font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;}
+.avatar.me{background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:13px;}
+.msg-body{max-width:78%;}
+.bubble{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:11px 15px;font-size:14px;line-height:1.75;}
+.msg.user .bubble{background:var(--accent-bg);border-color:var(--accent-border);}
+.bubble strong{color:var(--text);font-weight:600;}
+.bubble ul{padding-left:18px;margin:5px 0;}
+.bubble li{margin:3px 0;}
+.bubble h4{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text);margin:8px 0 4px;}
+.msg-meta{font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;}
+.msg.user .msg-meta{justify-content:flex-end;}
+.eli5-wrap{margin-top:8px;}
+.eli5-toggle-bar{display:flex;align-items:center;gap:8px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:10px;padding:9px 13px;cursor:pointer;transition:all .2s;user-select:none;}
+.eli5-toggle-bar:hover{background:rgba(200,169,110,0.14);}
+.eli5-apple{font-size:15px;line-height:1;}
+.eli5-toggle-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--accent);letter-spacing:1px;text-transform:uppercase;flex:1;}
+.eli5-toggle-hint{font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;}
+.eli5-chevron{font-size:11px;color:var(--accent);transition:transform .25s;}
+.eli5-chevron.open{transform:rotate(180deg);}
+.eli5-content{display:none;background:var(--bg4);border:1px solid var(--accent-border);border-top:none;border-radius:0 0 10px 10px;padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.7;}
+.eli5-content.show{display:block;animation:fadeUp .2s ease;}
+
+/* ── TYPING / LOADING ────────────────────────────────────────── */
+.thinking-bubble{display:flex;flex-direction:column;gap:7px;}
+.thinking-dots{display:flex;gap:4px;align-items:center;}
+.tdot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:tpulse 1.2s infinite;}
+.tdot:nth-child(2){animation-delay:.2s;}
+.tdot:nth-child(3){animation-delay:.4s;}
+@keyframes tpulse{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+.thinking-status{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.thinking-msg{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.5px;animation:fadeInMsg .4s ease;}
+.thinking-timer{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
+@keyframes fadeInMsg{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CHAT INPUT ─────────────────────────────────────────────── */
+.chat-foot{border-top:1px solid var(--border);padding:12px 16px;background:var(--bg2);}
+.mode-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.mode-lbl{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;}
+.mode-toggle{display:flex;background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:2px;gap:2px;}
+.mopt{padding:4px 12px;border-radius:16px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--text3);transition:all .2s;letter-spacing:.3px;}
+.mopt.active{background:var(--accent);color:var(--bg);font-weight:500;}
+.mopt:not(.active):hover{color:var(--text2);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chip:hover{border-color:var(--accent);color:var(--accent);}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+.chat-in{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:16px;resize:none;min-height:44px;max-height:120px;transition:border .2s;}
+.chat-in:focus{outline:none;border-color:var(--accent);}
+.send-btn{background:var(--accent);color:var(--bg);border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;white-space:nowrap;height:44px;}
+.send-btn:hover{opacity:.85;}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── WELCOME CARD ───────────────────────────────────────────── */
+.welcome{background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:12px;padding:16px 18px;animation:fadeUp .4s ease;}
+.welcome h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--accent);margin-bottom:6px;}
+.welcome p{font-size:13px;color:var(--text2);line-height:1.65;}
+.welcome .disc-note{margin-top:10px;font-size:12px;color:var(--text3);border-top:1px solid var(--accent-border);padding-top:9px;font-style:italic;}
+
+/* ── REPORT PANEL ───────────────────────────────────────────── */
+.report-panel{flex:1;overflow-y:auto;padding:20px;display:none;flex-direction:column;gap:18px;}
+.report-panel.active{display:flex;}
+
+/* ── PROGRESS OVERLAY ───────────────────────────────────────── */
+.prog-overlay{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:50;padding:32px 24px;}
+.prog-overlay.show{display:flex;}
+.prog-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--text);text-align:center;}
+.prog-warning{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;text-align:center;}
+.prog-stage{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);letter-spacing:1px;text-align:center;min-height:18px;}
+.prog-track{width:100%;max-width:360px;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .9s ease;}
+.prog-pct{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);text-align:center;}
+.prog-steps{display:flex;flex-direction:column;gap:7px;width:100%;max-width:360px;}
+.pstep{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text3);transition:color .3s;}
+.pstep.done{color:var(--text2);}
+.pstep.active{color:var(--accent);}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .3s;}
+.pstep.done .pdot{background:var(--text3);}
+.pstep.active .pdot{background:var(--accent);animation:pdotpulse 1s infinite;}
+@keyframes pdotpulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.7}}
+
+/* ── REPORT CONTENT ─────────────────────────────────────────── */
+.report-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;}
+.report-hdr h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--text);line-height:1.2;}
+.report-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:1px;}
+.export-bar{display:flex;gap:7px;flex-wrap:wrap;}
+.exp-btn{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:7px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.5px;transition:all .2s;}
+.exp-btn:hover{border-color:var(--accent);color:var(--accent);}
+.rcard{background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.rcard-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg4);}
+.rcard-icon{width:26px;height:26px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.rcard-lbl{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}
+.rcard-body{padding:14px 16px;font-size:14px;line-height:1.8;color:var(--text2);}
+.rcard-body strong{color:var(--text);font-weight:600;}
+.rcard-body ul{padding-left:18px;margin:6px 0;}
+.rcard-body li{margin:4px 0;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3);}
+.empty-state .ei{font-size:44px;margin-bottom:14px;opacity:.4;}
+.empty-state h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--text2);margin-bottom:8px;}
+.empty-state p{font-size:13px;max-width:300px;margin:0 auto;}
+
+/* ── REPORT SETUP ────────────────────────────────────────────── */
+.report-setup{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;}
+.report-setup-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text);}
+.report-setup-sub{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;}
+.report-setup .form-group label{font-size:13px;}
+
+/* ── CONTEXT NUDGE ───────────────────────────────────────────── */
+.ctx-nudge{background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+.ctx-nudge-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.ctx-nudge-text{flex:1;}
+.ctx-nudge-text strong{display:block;font-size:13px;color:var(--accent);margin-bottom:3px;}
+.ctx-nudge-text span{font-size:12px;color:var(--text2);line-height:1.5;}
+.ctx-nudge-btn{background:var(--accent);color:var(--bg);border:none;padding:7px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap;transition:opacity .2s;margin-top:8px;}
+.ctx-nudge-btn:hover{opacity:.85;}
+
+.copy-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;transition:all .2s;}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;z-index:999;display:none;animation:fadeUp .3s ease;max-width:280px;}
+.toast.show{display:block;}
+
+/* ── SCROLLBAR ──────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-word">BizWiz</span>
+    <div class="logo-dot"></div>
+    <span class="logo-tag">Strategy AI</span>
+  </div>
+  <div class="hdr-right">
+    <button class="icon-btn" id="sidebarToggle" onclick="toggleSidebar()" style="display:none">☰ Context</button>
+    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
+  </div>
+</header>
+
+<div class="disc-bar" id="discBar">
+  <span>⚠️ <strong>Educational use only.</strong> BizWiz uses generative AI — not a substitute for professional business, legal, or financial advice.</span>
+  <button class="disc-dismiss" onclick="dismissDisc()">✕</button>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- Sample Businesses -->
+    <div>
+      <div class="sample-label">Try a sample business</div>
+      <div class="sample-row">
+        <div class="sample-chip" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
+        <div class="sample-chip" onclick="loadSample('acme')">💣 Acme Corp</div>
+        <div class="sample-chip" onclick="loadSample('starry')">🚀 Stark Industries</div>
+        <div class="sample-chip" onclick="loadSample('pawnee')">🏛️ Pawnee Parks</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Business Context -->
+    <div>
+      <div class="sec-title">
+        Business Context
+        <span class="info-i">ⓘ<span class="tip">This context is injected into every prompt. More detail = more tailored answers.</span></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div class="form-group">
+          <label>Company / Org Name</label>
+          <input type="text" id="companyName" placeholder="e.g. Acme Corp" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>Industry</label>
+          <select id="industry">
+            <option value="">Select...</option>
+            <option>Technology / SaaS</option><option>Consumer Goods / Retail</option>
+            <option>Healthcare / Life Sciences</option><option>Financial Services</option>
+            <option>Media &amp; Entertainment</option><option>Manufacturing / Industrial</option>
+            <option>Professional Services</option><option>E-commerce</option>
+            <option>Real Estate</option><option>Education</option>
+            <option>Hospitality / Food &amp; Bev</option><option>Non-profit</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stage</label>
+          <select id="stage">
+            <option value="">Select...</option>
+            <option>Pre-revenue / Idea</option><option>Early Stage (Seed/Series A)</option>
+            <option>Growth Stage (Series B+)</option><option>SMB (established)</option>
+            <option>Mid-market</option><option>Enterprise / Large Corp</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Annual Revenue</label>
+          <select id="revenue">
+            <option value="">Select...</option>
+            <option>Pre-revenue</option><option>Under $1M</option><option>$1M – $10M</option>
+            <option>$10M – $50M</option><option>$50M – $250M</option><option>$250M – $1B</option><option>$1B+</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Key Challenge (optional)</label>
+          <textarea id="challenge" placeholder="e.g. Losing deals to a lower-priced competitor..."></textarea>
+        </div>
+        <div class="profile-actions">
+          <button class="profile-btn" onclick="saveProfile()">💾 Save Profile</button>
+          <button class="profile-btn" onclick="clearProfile()">🗑 Clear</button>
+        </div>
+        <div class="saved-ind" id="savedInd"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Persona -->
+    <div>
+      <div class="sec-title">
+        Consultant Persona
+        <span class="info-i">ⓘ<span class="tip"><strong>McKinsey</strong> — Strategy pivots, org redesign, complex multi-division problems.<br><br><strong>Bain</strong> — Growth, PE-backed cos, customer loyalty &amp; commercial diligence.<br><br><strong>BCG</strong> — Innovation, new market entry, disruptive business models.<br><br><strong>Deloitte</strong> — Ops transformation, tech implementation, risk &amp; compliance.</span></span>
+      </div>
+      <div class="persona-grid">
+        <div class="persona-card active" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
+        <div class="persona-card" onclick="setPer(this,'Bain')"><div class="firm-name">Bain</div><div class="firm-desc">Results-first</div></div>
+        <div class="persona-card" onclick="setPer(this,'BCG')"><div class="firm-name">BCG</div><div class="firm-desc">Innovation-led</div></div>
+        <div class="persona-card" onclick="setPer(this,'Deloitte')"><div class="firm-name">Deloitte</div><div class="firm-desc">Ops-focused</div></div>
+      </div>
+    </div>
+
+    </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('chat')" id="tab-chat">
+        <div class="tab-label">💬 Ask a Question</div>
+        <div class="tab-sub">Quick · Conversational</div>
+      </div>
+      <div class="tab" onclick="switchTab('report')" id="tab-report">
+        <div class="tab-label">📄 Strategy Report</div>
+        <div class="tab-sub">Full doc · Export ready</div>
+      </div>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div class="chat-panel" id="panel-chat">
+      <div class="chat-toolbar">
+        <button class="tbtn" id="saveChatBtn" onclick="saveChat()" disabled>💾 Save</button>
+        <button class="tbtn" id="exportTxtBtn" onclick="exportChatTXT()" disabled>⬇ TXT</button>
+        <button class="tbtn" id="exportPdfBtn" onclick="exportChatPDF()" disabled>⬇ PDF</button>
+        <button class="tbtn" id="clearChatBtn" onclick="clearChat()" disabled>🗑 Clear</button>
+      </div>
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="welcome">
+          <h3>Welcome to BizWiz</h3>
+          <p>Your AI strategy consultant — powered by McKinsey, Bain, BCG &amp; Deloitte frameworks. Fill in your business context in the sidebar, then ask any strategic question below.</p>
+          <p class="disc-note">⚠️ AI-generated content for educational use only. Not professional advice.</p>
+        </div>
+      </div>
+      <div class="chat-foot">
+        <div class="mode-row">
+          <span class="mode-lbl">Response:</span>
+          <div class="mode-toggle">
+            <div class="mopt active" onclick="setMode(this,'concise')">Concise</div>
+            <div class="mopt" onclick="setMode(this,'extended')">Extended</div>
+          </div>
+          <span class="info-i">ⓘ<span class="tip"><strong>Concise:</strong> 3–5 bullet answers, fast reads.<br><br><strong>Extended:</strong> Full consulting narrative with frameworks and next steps.</span></span>
+        </div>
+        <div class="chips">
+          <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
+          <div class="chip" onclick="usePrompt(this)">Analyze my competitive position</div>
+          <div class="chip" onclick="usePrompt(this)">How should I price my product?</div>
+          <div class="chip" onclick="usePrompt(this)">Build a go-to-market plan</div>
+          <div class="chip" onclick="usePrompt(this)">What are my biggest risks?</div>
+        </div>
+        <div class="input-row">
+          <textarea class="chat-in" id="chatIn" placeholder="Ask your business question…" rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT PANEL -->
+    <div class="report-panel" id="panel-report">
+
+      <!-- Progress Overlay -->
+      <div class="prog-overlay" id="progOverlay">
+        <div class="prog-title">Building Your Strategy Report…</div>
+        <div class="prog-warning">⏱ This takes 30–60 seconds. Please wait.</div>
+        <div class="prog-stage" id="progStage">Starting up…</div>
+        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-pct" id="progPct">0%</div>
+        <div class="prog-steps">
+          <div class="pstep" id="ps0"><div class="pdot"></div>Analyzing business situation</div>
+          <div class="pstep" id="ps1"><div class="pdot"></div>Identifying key findings</div>
+          <div class="pstep" id="ps2"><div class="pdot"></div>Structuring recommendations</div>
+          <div class="pstep" id="ps3"><div class="pdot"></div>Building implementation roadmap</div>
+          <div class="pstep" id="ps4"><div class="pdot"></div>Assessing risks &amp; mitigants</div>
+          <div class="pstep" id="ps5"><div class="pdot"></div>Writing plain-English summary</div>
+        </div>
+      </div>
+
+      <!-- Report Setup (always visible until report generated) -->
+      <div id="reportSetup" class="report-setup">
+        <div>
+          <div class="report-setup-title">Generate a Strategy Report</div>
+          <div class="report-setup-sub">Full 7-section consulting document · 30–60 seconds</div>
+        </div>
+
+        <!-- Context nudge — shown when no context filled in -->
+        <div class="ctx-nudge" id="reportCtxNudge" style="display:none;">
+          <div class="ctx-nudge-icon">☝️</div>
+          <div class="ctx-nudge-text">
+            <strong>Add your business context first</strong>
+            <span>Your report will be much more useful if we know your company, industry, and challenge.</span>
+            <br><button class="ctx-nudge-btn" onclick="openSidebarToContext()">Open Business Context →</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Report Focus</label>
+          <select id="reportFocus" style="font-size:16px;">
+            <option value="">Select a focus area...</option>
+            <option>Growth Strategy</option><option>Market Entry</option><option>Competitive Analysis</option>
+            <option>Operational Efficiency</option><option>Pricing Strategy</option>
+            <option>Organizational Design</option><option>M&amp;A / Partnerships</option>
+            <option>Digital Transformation</option><option>Customer Experience</option><option>Cost Reduction</option>
+          </select>
+        </div>
+        <button class="gen-btn" onclick="generateReport()" id="reportBtn">⚡ Generate Report</button>
+      </div>
+
+      <!-- Report content -->
+      <div id="reportContent" style="display:none;">
+        <div class="report-hdr">
+          <div><h2 id="reportTitle">Strategy Report</h2><div class="report-meta" id="reportMeta"></div></div>
+          <div class="export-bar">
+            <button class="exp-btn" onclick="exportTXT()">⬇ TXT</button>
+            <button class="exp-btn" onclick="exportPDF()">⬇ PDF</button>
+            <button class="exp-btn" onclick="exportCSV()">⬇ CSV</button>
+            <button class="exp-btn" onclick="exportEmail()">✉ Email</button>
+          </div>
+        </div>
+        <div id="reportSections"></div>
+        <!-- New report button at bottom -->
+        <button class="gen-btn" onclick="newReport()" style="margin-top:8px;background:var(--bg4);color:var(--text2);border:1px solid var(--border);">+ New Report</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let firm = 'McKinsey';
+let mode = 'concise';
+let history = [];
+let report = null;
+let progTimer = null;
+
+// ── LOCAL STORAGE HELPERS (safe) ───────────────────────────────
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+
+// ── MOBILE DETECTION ───────────────────────────────────────────
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if(isMobile){
+  document.getElementById('sidebarToggle').style.display='flex';
+}
+
+// ── THEME ─────────────────────────────────────────────────────
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('themeBtn').textContent=dark?'🌙':'☀️';
+  lsSet('bizwiz_theme',dark?'light':'dark');
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+
+// ── PERSONA ───────────────────────────────────────────────────
+function setPer(el,f){
+  document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');firm=f;
+}
+
+// ── RESPONSE MODE ─────────────────────────────────────────────
+function setMode(el,m){
+  document.querySelectorAll('.mopt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');mode=m;
+  document.getElementById('chatIn').placeholder=m==='concise'?'Ask a quick business question…':'Ask for an in-depth strategic analysis…';
+}
+
+// ── CONTEXT ───────────────────────────────────────────────────
+function getCtx(){
+  const parts=[];
+  const n=document.getElementById('companyName').value.trim();
+  const i=document.getElementById('industry').value;
+  const s=document.getElementById('stage').value;
+  const r=document.getElementById('revenue').value;
+  const c=document.getElementById('challenge').value.trim();
+  if(n)parts.push('Company: '+n);
+  if(i)parts.push('Industry: '+i);
+  if(s)parts.push('Stage: '+s);
+  if(r)parts.push('Revenue: '+r);
+  if(c)parts.push('Key challenge: '+c);
+  return parts.join('. ');
+}
+
+// ── PERSONAS ──────────────────────────────────────────────────
+const PERSONAS={
+  McKinsey:`You are a Senior Partner at McKinsey & Company with 20 years of experience. You use hypothesis-driven problem solving, MECE structuring, and the Situation-Complication-Resolution narrative. You reference the 3 Horizons of Growth, 7-S Framework, and Profit Pool analysis. Your tone is authoritative, precise, and structured.`,
+  Bain:`You are a Partner at Bain & Company. You are results-obsessed and pragmatic. You use the Net Promoter System, Bain's Results Delivery® approach. You are direct, commercially sharp, and always tie recommendations to measurable impact.`,
+  BCG:`You are a Principal at Boston Consulting Group. You are innovation-led, analytical, and data-forward. You leverage the Growth-Share Matrix, Henderson's Law, and BCG's bionic company framework. You balance analytical rigor with bold creative thinking.`,
+  Deloitte:`You are a Managing Director at Deloitte Consulting with deep operational expertise across transformation, technology, and organizational design. You approach problems through enterprise risk, operational efficiency, and scalability.`
+};
+
+function buildSystem(){
+  const persona=PERSONAS[firm]||PERSONAS.McKinsey;
+  const ctx=getCtx();
+  const modeInstr=mode==='concise'
+    ?`Be CONCISE: one framing sentence, name the framework, give 3–5 punchy bullet recommendations (1–2 sentences each), end with 2–3 next steps. Under 200 words total.`
+    :`Provide a FULL consulting response: strategic framing (2–3 sentences), explain the framework, give 4–6 recommendations with rationale, include trade-offs, end with 30/60/90-day next steps.`;
+  return `${persona}\n\n${ctx?'CLIENT CONTEXT: '+ctx:'No client context provided — answer in general terms.'}\n\n${modeInstr}\n\nAfter your response, append exactly "ELI5 SUMMARY:" followed by 3–4 simple sentences explaining the same advice for someone with no business background.`;
+}
+
+// ── API CALL ──────────────────────────────────────────────────
+async function callAPI(messages, system, maxTokens){
+  const res = await fetch('/api/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages})
+  });
+  const data = await res.json();
+  if(!res.ok || data.type==='error'){
+    throw new Error(data?.error?.message || `HTTP ${res.status}`);
+  }
+  // Extract text from any known response shape
+  const text = data.content?.[0]?.text
+    ?? (typeof data.content==='string' ? data.content : null)
+    ?? data.completion
+    ?? data.text
+    ?? null;
+  if(!text) throw new Error(`Unknown response shape: ${JSON.stringify(data).slice(0,120)}`);
+  return text;
+}
+
+// ── CONTEXT GATE ──────────────────────────────────────────────
+function hasContext(){
+  return !!(document.getElementById('companyName').value.trim() ||
+            document.getElementById('industry').value ||
+            document.getElementById('challenge').value.trim());
+}
+
+function showCtxNudge(container){
+  // Inline nudge inside chat messages
+  const msgs=document.getElementById('chatMsgs');
+  const existing=document.getElementById('inlinNudge');
+  if(existing)return; // don't stack
+  const el=document.createElement('div');
+  el.id='inlinNudge';
+  el.className='ctx-nudge';
+  el.style.cssText='animation:fadeUp .3s ease;';
+  el.innerHTML=`<div class="ctx-nudge-icon">☝️</div><div class="ctx-nudge-text"><strong>Add your business context first</strong><span>BizWiz gives much better advice when it knows your company, industry, and challenge. Takes 30 seconds.</span><br><button class="ctx-nudge-btn" onclick="openSidebarToContext()">Open Business Context →</button></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function openSidebarToContext(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.add('open');
+  // Scroll sidebar to top (where business context is)
+  sb.scrollTop=0;
+  // Focus the company name field
+  setTimeout(()=>{
+    const f=document.getElementById('companyName');
+    if(f)f.focus();
+  },200);
+}
+
+// ── TABS (updated to check nudge on report tab) ────────────────
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-chat').style.display=tab==='chat'?'flex':'none';
+  const rp=document.getElementById('panel-report');
+  tab==='report'?rp.classList.add('active'):rp.classList.remove('active');
+  // Show/hide context nudge on report tab
+  if(tab==='report'){
+    const nudge=document.getElementById('reportCtxNudge');
+    if(nudge) nudge.style.display=hasContext()?'none':'flex';
+  }
+}
+
+function newReport(){
+  document.getElementById('reportContent').style.display='none';
+  document.getElementById('reportSetup').style.display='flex';
+  document.getElementById('reportFocus').value='';
+  // Re-check nudge
+  const nudge=document.getElementById('reportCtxNudge');
+  if(nudge) nudge.style.display=hasContext()?'none':'flex';
+}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function usePrompt(el){const i=document.getElementById('chatIn');i.value=el.textContent;i.focus();autoResize(i);}
+
+async function sendMsg(){
+  const input=document.getElementById('chatIn');
+  const text=input.value.trim();
+  if(!text)return;
+
+  // Context gate — soft nudge, don't block
+  if(!hasContext()){
+    // Remove old nudge if present so it re-animates
+    const old=document.getElementById('inlinNudge');
+    if(old)old.remove();
+    addMsg('user',text);
+    input.value='';input.style.height='auto';
+    showCtxNudge();
+    return;
+  }
+  addMsg('user',text);
+  input.value='';input.style.height='auto';
+  history.push({role:'user',content:text});
+  const btn=document.getElementById('sendBtn');
+  btn.disabled=true;
+  const typing=addTyping();
+  try{
+    const fullText=await callAPI(history.map(m=>({role:m.role,content:m.content})),buildSystem(),1500);
+    removeTyping(typing);
+    const m=fullText.match(/ELI5 SUMMARY:\s*([\s\S]+)$/i);
+    const main=m?fullText.slice(0,m.index).trim():fullText;
+    const eli5=m?m[1].trim():null;
+    history.push({role:'assistant',content:fullText});
+    addMsg('assistant',main,eli5);
+  }catch(err){
+    removeTyping(typing);
+    addMsg('assistant',`⚠️ Error: ${err.message}`);
+  }
+  btn.disabled=false;
+  updateToolbar();
+}
+
+const THINKING_MSGS = [
+  'Reviewing the business context…',
+  'Consulting the frameworks…',
+  'Analyzing competitive dynamics…',
+  'Structuring the response…',
+  'Drafting recommendations…',
+  'Applying the methodology…',
+  'Checking the numbers…',
+  'Finalizing the advice…',
+];
+let thinkingTimer = null;
+let thinkingElapsed = null;
+
+function addTyping(){
+  const msgs = document.getElementById('chatMsgs');
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.id = 'thinkingEl';
+  el.innerHTML = `
+    <div class="avatar ai">W</div>
+    <div class="msg-body">
+      <div class="bubble">
+        <div class="thinking-bubble">
+          <div class="thinking-dots">
+            <div class="tdot"></div><div class="tdot"></div><div class="tdot"></div>
+          </div>
+          <div class="thinking-status">
+            <span class="thinking-msg" id="thinkingMsg">${THINKING_MSGS[0]}</span>
+            <span class="thinking-timer" id="thinkingTimer">0s</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Rotate messages
+  let msgIdx = 0;
+  thinkingTimer = setInterval(() => {
+    msgIdx = (msgIdx + 1) % THINKING_MSGS.length;
+    const msgEl = document.getElementById('thinkingMsg');
+    if(msgEl){
+      msgEl.style.animation = 'none';
+      void msgEl.offsetWidth; // reflow to restart animation
+      msgEl.style.animation = '';
+      msgEl.textContent = THINKING_MSGS[msgIdx];
+    }
+  }, 2200);
+
+  // Tick elapsed time
+  let secs = 0;
+  thinkingElapsed = setInterval(() => {
+    secs++;
+    const timerEl = document.getElementById('thinkingTimer');
+    if(timerEl) timerEl.textContent = secs + 's';
+  }, 1000);
+
+  return el;
+}
+
+function removeTyping(el){
+  clearInterval(thinkingTimer);
+  clearInterval(thinkingElapsed);
+  thinkingTimer = null;
+  thinkingElapsed = null;
+  el.remove();
+}
+
+let mid=0;
+function addMsg(role,text,eli5=null){
+  const msgs=document.getElementById('chatMsgs');
+  const el=document.createElement('div');
+  el.className='msg'+(role==='user'?' user':'');
+  const id='e5'+(++mid);
+  const time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  if(role==='user'){
+    el.innerHTML=`<div class="avatar me">👤</div><div class="msg-body"><div class="bubble">${esc(text)}</div><div class="msg-meta">${time}</div></div>`;
+  } else {
+    const eli5Html = eli5 ? `
+      <div class="eli5-wrap">
+        <div class="eli5-toggle-bar" onclick="toggleEli5('${id}')" id="bar-${id}">
+          <span class="eli5-apple">🍎</span>
+          <span class="eli5-toggle-label">ELI5 — Plain English</span>
+          <span class="eli5-toggle-hint">Tap to expand</span>
+          <span class="eli5-chevron" id="chev-${id}">▼</span>
+        </div>
+        <div class="eli5-content" id="${id}">${fmt(eli5)}</div>
+      </div>` : '';
+    el.innerHTML=`<div class="avatar ai">W</div><div class="msg-body"><div class="bubble">${fmt(text)}${eli5Html}</div><div class="msg-meta"><span>${firm} Partner · ${time}</span></div></div>`;
+  }
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;updateToolbar();
+}
+
+function toggleEli5(id){
+  const content=document.getElementById(id);
+  const chev=document.getElementById('chev-'+id);
+  const bar=document.getElementById('bar-'+id);
+  const isOpen=content.classList.toggle('show');
+  if(chev)chev.classList.toggle('open',isOpen);
+  const hint=bar?.querySelector('.eli5-toggle-hint');
+  if(hint)hint.textContent=isOpen?'Tap to collapse':'Tap to expand';
+}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmt(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^#{1,3}\s+(.+)$/gm,'<h4>$1</h4>')
+    .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]+?<\/li>)/g,'<ul>$1</ul>')
+    .replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+}
+
+// ── TOOLBAR ───────────────────────────────────────────────────
+function updateToolbar(){
+  const has=history.length>0;
+  ['saveChatBtn','exportTxtBtn','exportPdfBtn','clearChatBtn'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.disabled=!has;
+  });
+}
+
+// ── REPORT PROGRESS ───────────────────────────────────────────
+const STAGES=[
+  {label:'Analyzing business situation…',pct:14},
+  {label:'Identifying key findings…',pct:28},
+  {label:'Structuring recommendations…',pct:46},
+  {label:'Building implementation roadmap…',pct:62},
+  {label:'Assessing risks & mitigants…',pct:78},
+  {label:'Writing plain-English summary…',pct:92},
+];
+
+function startProgress(){
+  switchTab('report');
+  document.getElementById('progOverlay').classList.add('show');
+  document.getElementById('progFill').style.width='3%';
+  document.getElementById('progPct').textContent='3%';
+  document.getElementById('progStage').textContent='Starting up…';
+  let step=0;
+  function next(){
+    if(step>=STAGES.length)return;
+    const s=STAGES[step];
+    document.getElementById('progStage').textContent=s.label;
+    document.getElementById('progFill').style.width=s.pct+'%';
+    document.getElementById('progPct').textContent=s.pct+'%';
+    for(let i=0;i<STAGES.length;i++){
+      const el=document.getElementById('ps'+i);if(!el)continue;
+      el.classList.remove('active','done');
+      if(i<step)el.classList.add('done');
+      else if(i===step)el.classList.add('active');
+    }
+    step++;
+    progTimer=setTimeout(next,step<3?2000:step<5?2500:3200);
+  }
+  next();
+}
+
+function stopProgress(){
+  clearTimeout(progTimer);
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progPct').textContent='100%';
+  document.getElementById('progStage').textContent='Complete ✓';
+  for(let i=0;i<STAGES.length;i++){const el=document.getElementById('ps'+i);if(el){el.classList.remove('active');el.classList.add('done');}}
+  setTimeout(()=>document.getElementById('progOverlay').classList.remove('show'),700);
+}
+
+// ── GENERATE REPORT ───────────────────────────────────────────
+const SDEFS=[
+  {key:'EXECUTIVE SUMMARY',icon:'📌',label:'Executive Summary'},
+  {key:'SITUATION ANALYSIS',icon:'🔍',label:'Situation Analysis'},
+  {key:'KEY FINDINGS',icon:'💡',label:'Key Findings'},
+  {key:'STRATEGIC RECOMMENDATIONS',icon:'🎯',label:'Strategic Recommendations'},
+  {key:'IMPLEMENTATION ROADMAP',icon:'🗺️',label:'Implementation Roadmap'},
+  {key:'RISKS & MITIGANTS',icon:'⚠️',label:'Risks & Mitigants'},
+  {key:'ELI5 SUMMARY',icon:'🍎',label:'ELI5 — Plain English'},
+];
+
+async function generateReport(){
+  const focus=document.getElementById('reportFocus').value;
+  if(!focus){toast('Select a report focus first.');return;}
+
+  // Soft warn if no context but don't block
+  if(!hasContext()){
+    const nudge=document.getElementById('reportCtxNudge');
+    if(nudge){nudge.style.display='flex';nudge.scrollIntoView({behavior:'smooth',block:'nearest'});}
+    // Give user 2s to see nudge, then proceed anyway if they click generate again
+    toast('Tip: Add business context for a more tailored report.');
+  }
+
+  const btn=document.getElementById('reportBtn');
+  btn.disabled=true;btn.textContent='⏳ Generating…';
+  // Hide setup panel during generation
+  document.getElementById('reportSetup').style.display='none';
+  startProgress();
+  const ctx=getCtx();
+  const company=document.getElementById('companyName').value.trim()||'Your Company';
+  const prompt=`You are a ${firm} Senior Partner. Generate a comprehensive strategy report on: "${focus}".
+${ctx?'Client context: '+ctx:''}
+
+Use EXACTLY these section headers on their own lines with no numbers or bullets before them:
+
+EXECUTIVE SUMMARY
+SITUATION ANALYSIS
+KEY FINDINGS
+STRATEGIC RECOMMENDATIONS
+IMPLEMENTATION ROADMAP
+RISKS & MITIGANTS
+ELI5 SUMMARY
+
+Each section must be detailed and consulting-grade. Use **bold** for key terms. ELI5 SUMMARY should be 4–5 plain sentences.`;
+
+  try{
+    const fullText=await callAPI([{role:'user',content:prompt}],'',4000);
+    stopProgress();
+    renderReport(fullText,company,focus);
+  }catch(err){
+    stopProgress();
+    document.getElementById('reportSetup').style.display='flex';
+    toast(`Report error: ${err.message}`);
+  }
+  btn.disabled=false;btn.textContent='⚡ Generate Report';
+}
+
+function renderReport(text,company,focus){
+  const parsed={};
+  SDEFS.forEach((s,i)=>{
+    const start=text.indexOf(s.key);if(start===-1)return;
+    const from=start+s.key.length;
+    const nexts=SDEFS.slice(i+1).map(n=>text.indexOf(n.key,from)).filter(x=>x!==-1);
+    const end=nexts.length?Math.min(...nexts):text.length;
+    parsed[s.key]=text.slice(from,end).replace(/^[\s\n:*#\d.]+/,'').trim();
+  });
+  report={company,focus,firm,sections:parsed,raw:text,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+  document.getElementById('reportSetup').style.display='none';
+  const rc=document.getElementById('reportContent');
+  rc.style.display='block';
+  document.getElementById('reportTitle').textContent=`${focus} — ${company}`;
+  document.getElementById('reportMeta').textContent=`${firm} Framework  •  ${report.date}`;
+  const sec=document.getElementById('reportSections');
+  sec.innerHTML='';
+  SDEFS.forEach(s=>{
+    const c=parsed[s.key];if(!c)return;
+    const card=document.createElement('div');card.className='rcard';
+    const plainText=c.replace(/\*\*(.*?)\*\*/g,'$1');
+    card.innerHTML=`<div class="rcard-hdr"><div class="rcard-icon">${s.icon}</div><div class="rcard-lbl">${s.label}</div><button class="copy-btn" onclick="copySection(this,'${encodeURIComponent(plainText)}')">Copy</button></div><div class="rcard-body">${fmt(c)}</div>`;
+    sec.appendChild(card);
+  });
+}
+
+// ── SAFE DOWNLOAD / PRINT ─────────────────────────────────────
+function safeDownload(content,filename,mime){
+  try{
+    const blob=new Blob([content],{type:mime});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){
+    try{
+      const b64=btoa(unescape(encodeURIComponent(content)));
+      const a=document.createElement('a');
+      a.href=`data:${mime};base64,${b64}`;a.download=filename;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }catch(e2){toast('Download not supported on this device.');}
+  }
+}
+function safePrint(html){
+  try{
+    const b64=btoa(unescape(encodeURIComponent(html)));
+    const win=window.open('data:text/html;base64,'+b64,'_blank');
+    if(!win)throw new Error('blocked');
+    setTimeout(()=>{try{win.print();}catch(e){}},600);
+  }catch(e){
+    try{
+      const blob=new Blob([html],{type:'text/html'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.target='_blank';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast('Opened in new tab — use Print to save as PDF.');
+    }catch(e2){toast('PDF not supported here. Use TXT export.');}
+  }
+}
+
+// ── REPORT EXPORTS ─────────────────────────────────────────────
+function exportTXT(){
+  if(!report){toast('Generate a report first.');return;}
+  safeDownload(`BIZWIZ STRATEGY REPORT\n${'='.repeat(52)}\n${report.focus} — ${report.company}\n${report.firm} | ${report.date}\n\n${report.raw}`,`bizwiz-report-${Date.now()}.txt`,'text/plain');
+  toast('TXT downloaded ✓');
+}
+function exportPDF(){
+  if(!report){toast('Generate a report first.');return;}
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 40px;color:#111;line-height:1.8;font-size:14px}h1{font-size:24px}h2{font-size:12px;font-family:monospace;letter-spacing:2px;text-transform:uppercase;color:#8a6a2e;border-bottom:1px solid #e0d8cc;padding-bottom:5px;margin:26px 0 10px}strong{font-weight:600}ul{padding-left:20px}.meta{color:#888;font-size:11px;font-family:monospace;margin-bottom:30px}.disc{margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px}@media print{body{margin:0}}</style></head><body><h1>${report.focus} — ${report.company}</h1><div class="meta">${report.firm} Framework | ${report.date} | BizWiz</div>${SDEFS.map(s=>{const c=report.sections[s.key];return c?`<h2>${s.label}</h2><p>${c.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')}</p>`:''}).join('')}<div class="disc">⚠️ For educational purposes only. Not professional advice.</div></body></html>`;
+  safePrint(html);toast('Opening print view…');
+}
+function exportCSV(){
+  if(!report){toast('Generate a report first.');return;}
+  const rows=[['Section','Content'],...SDEFS.map(s=>[s.label,`"${(report.sections[s.key]||'').replace(/"/g,'""').replace(/\n/g,' ')}"`])];
+  safeDownload(rows.map(r=>r.join(',')).join('\n'),`bizwiz-report-${Date.now()}.csv`,'text/csv');
+  toast('CSV downloaded ✓');
+}
+function exportEmail(){
+  if(!report){toast('Generate a report first.');return;}
+  const body=encodeURIComponent(`${report.focus} — Strategy Brief\n${report.firm} | ${report.date}\n\nEXECUTIVE SUMMARY\n${report.sections['EXECUTIVE SUMMARY']||''}\n\nSTRATEGIC RECOMMENDATIONS\n${report.sections['STRATEGIC RECOMMENDATIONS']||''}\n\nPLAIN ENGLISH\n${report.sections['ELI5 SUMMARY']||''}\n\n— BizWiz Strategy AI`);
+  window.location.href=`mailto:?subject=${encodeURIComponent(`Strategy Brief: ${report.focus} — ${report.company}`)}&body=${body}`;
+  toast('Email client opened ✓');
+}
+
+// ── CHAT EXPORTS ──────────────────────────────────────────────
+function saveChat(){
+  if(!history.length)return;
+  lsSet('bizwiz_chat',JSON.stringify({history,firm,date:new Date().toISOString()}));
+  toast('Chat saved ✓');
+}
+function exportChatTXT(){
+  if(!history.length)return;
+  const co=document.getElementById('companyName').value.trim()||'Your Company';
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const lines=[`BIZWIZ CHAT\n${'='.repeat(40)}\n${co} · ${firm} · ${date}\n`];
+  history.forEach(m=>{lines.push(`\n[${m.role==='user'?'YOU':firm.toUpperCase()}]\n${m.content.replace(/\*\*(.*?)\*\*/g,'$1')}`);});
+  lines.push('\n\n— BizWiz Strategy AI\n⚠️ Educational use only.');
+  safeDownload(lines.join('\n'),`bizwiz-chat-${Date.now()}.txt`,'text/plain');
+  toast('Chat TXT downloaded ✓');
+}
+function exportChatPDF(){
+  if(!history.length)return;
+  const co=document.getElementById('companyName').value.trim()||'Your Company';
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const msgs=history.map(m=>{
+    const isU=m.role==='user';
+    return `<div style="margin:16px 0;padding:12px 16px;border-radius:8px;background:${isU?'#f5f0e8':'#fafafa'};border-left:3px solid ${isU?'#8a6a2e':'#ccc'}"><div style="font-family:monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:5px">${isU?'You':firm+' Consultant'}</div><p>${m.content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</p></div>`;
+  }).join('');
+  safePrint(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 40px;color:#111;font-size:14px;line-height:1.75}h1{font-size:20px}strong{font-weight:600}@media print{body{margin:0}}</style></head><body><h1>BizWiz Chat Transcript</h1><p style="font-family:monospace;font-size:11px;color:#888;margin-bottom:28px">${co} · ${firm} · ${date}</p>${msgs}<p style="margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:10px">⚠️ Educational use only. Not professional advice.</p></body></html>`);
+  toast('Opening print view…');
+}
+function clearChat(){
+  history=[];lsDel('bizwiz_chat');
+  document.getElementById('chatMsgs').innerHTML=`<div class="welcome"><h3>Welcome to BizWiz</h3><p>Your AI strategy consultant — powered by McKinsey, Bain, BCG &amp; Deloitte frameworks. Fill in your business context, then ask any strategic question.</p><p class="disc-note">⚠️ AI-generated content for educational use only. Not professional advice.</p></div>`;
+  updateToolbar();toast('Chat cleared');
+}
+
+// ── DISCLAIMER ────────────────────────────────────────────────
+function dismissDisc(){
+  document.getElementById('discBar').style.display='none';
+  lsSet('bizwiz_disc','1');
+}
+
+// ── PROFILE ───────────────────────────────────────────────────
+const PKEY='bizwiz_profile';
+function saveProfile(){
+  lsSet(PKEY,JSON.stringify({
+    companyName:document.getElementById('companyName').value,
+    industry:document.getElementById('industry').value,
+    stage:document.getElementById('stage').value,
+    revenue:document.getElementById('revenue').value,
+    challenge:document.getElementById('challenge').value,
+    firm
+  }));
+  setInd('✓ Saved','var(--green)');toast('Profile saved ✓');
+}
+function loadProfile(){
+  try{
+    const raw=lsGet(PKEY);if(!raw)return;
+    const p=JSON.parse(raw);
+    if(p.companyName)document.getElementById('companyName').value=p.companyName;
+    if(p.industry)document.getElementById('industry').value=p.industry;
+    if(p.stage)document.getElementById('stage').value=p.stage;
+    if(p.revenue)document.getElementById('revenue').value=p.revenue;
+    if(p.challenge)document.getElementById('challenge').value=p.challenge;
+    if(p.firm){firm=p.firm;document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active',c.querySelector('.firm-name')?.textContent===p.firm));}
+  }catch(e){}
+}
+function clearProfile(){
+  lsDel(PKEY);
+  ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
+  ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
+  firm='McKinsey';document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
+  setInd('Cleared','var(--text3)');toast('Profile cleared');
+}
+function setInd(msg,color){const el=document.getElementById('savedInd');el.textContent=msg;el.style.color=color;setTimeout(()=>el.textContent='',2500);}
+
+// ── SAMPLE BUSINESSES ─────────────────────────────────────────
+const SAMPLES={
+  krusty:{companyName:'Krusty Burger',industry:'Hospitality / Food & Bev',stage:'SMB (established)',revenue:'$10M – $50M',challenge:"We're a beloved regional fast food chain with 12 locations but sales have been flat for 3 years. A competitor (Burger Barn) opened nearby and is stealing our lunch crowd with lower prices and a trendy app. We need to modernize without losing our loyal regulars.",firm:'Bain'},
+  acme:{companyName:'Acme Corporation',industry:'Manufacturing / Industrial',stage:'Enterprise / Large Corp',revenue:'$250M – $1B',challenge:"We manufacture 400+ SKUs (anvils, rocket skates, portable holes) with no clear focus. Margins are shrinking, our biggest customer keeps returning defective items, and we need a coherent growth strategy.",firm:'McKinsey'},
+  starry:{companyName:'Stark Industries',industry:'Manufacturing / Industrial',stage:'Enterprise / Large Corp',revenue:'$1B+',challenge:"We dominate defense and aerospace but our CEO wants to pivot toward clean energy and commercial space. The board is skeptical, legacy defense contracts are still 80% of revenue, and our top engineering talent keeps getting poached by SpaceX and Blue Origin. How do we transition without losing our core business?",firm:'BCG'},
+  pawnee:{companyName:'Pawnee Parks & Rec',industry:'Non-profit',stage:'SMB (established)',revenue:'Pre-revenue',challenge:"We're a city parks department facing a 20% budget cut. We need to demonstrate measurable community value to the city council while launching a new after-school program this fall.",firm:'Deloitte'}
+};
+const SAMPLE_PROMPTS={
+  krusty:['Why is Burger Barn beating us?','How do we build a loyalty app on a tight budget?','Should we franchise or go corporate-owned?','How do we modernize without losing regulars?'],
+  acme:['How do we rationalize our 400+ SKU portfolio?','What\'s our best path to margin recovery?','Should we divest underperforming lines?','How do we fix our quality control problem?'],
+  starry:['How do we reduce dependence on defense contracts?','How do we compete for talent against SpaceX?','What\'s the right clean energy entry strategy?','How do we manage a skeptical board?'],
+  pawnee:['How do we avoid the 20% budget cut?','What metrics prove community ROI for parks?','How do we launch the after-school program fast?','How do we build community coalition support?']
+};
+function loadSample(key){
+  const b=SAMPLES[key];if(!b)return;
+  document.getElementById('companyName').value=b.companyName;
+  document.getElementById('challenge').value=b.challenge;
+  ['industry','stage','revenue'].forEach(f=>{
+    const sel=document.getElementById(f);
+    for(let i=0;i<sel.options.length;i++){if(sel.options[i].text===b[f]){sel.selectedIndex=i;break;}}
+  });
+  firm=b.firm;
+  document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active',c.querySelector('.firm-name')?.textContent===b.firm));
+  // Swap quick-prompt chips to context-aware ones
+  const prompts=SAMPLE_PROMPTS[key];
+  if(prompts){
+    const chips=document.querySelector('.chips');
+    if(chips) chips.innerHTML=prompts.map(p=>`<div class="chip" onclick="usePrompt(this)">${p}</div>`).join('');
+  }
+  // Remove stale context nudge if present
+  const nudge=document.getElementById('inlinNudge');if(nudge)nudge.remove();
+  const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'🏛️ Pawnee Parks'};
+  toast(labels[key]+' loaded — ask away!');
+  if(isMobile)document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── COPY SECTION ──────────────────────────────────────────────
+function copySection(btn,encoded){
+  const text=decodeURIComponent(encoded);
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',1800);
+  }).catch(()=>{
+    // Fallback for iOS
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');btn.textContent='Copied!';}catch(e){btn.textContent='Failed';}
+    document.body.removeChild(ta);
+    setTimeout(()=>btn.textContent='Copy',1800);
+  });
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ── INIT ──────────────────────────────────────────────────────
+(function init(){
+  // Theme
+  const savedTheme=lsGet('bizwiz_theme');
+  if(savedTheme){document.documentElement.setAttribute('data-theme',savedTheme);document.getElementById('themeBtn').textContent=savedTheme==='dark'?'☀️':'🌙';}
+  // Disclaimer
+  if(lsGet('bizwiz_disc')==='1')document.getElementById('discBar').style.display='none';
+  // Profile
+  loadProfile();
+  if(lsGet(PKEY))setInd('📂 Profile loaded','var(--text3)');
+  // Saved chat
+  try{
+    const raw=lsGet('bizwiz_chat');
+    if(raw){
+      const p=JSON.parse(raw);
+      if(p.history?.length){
+        history=p.history;
+        if(p.firm)firm=p.firm;
+        const msgs=document.getElementById('chatMsgs');
+        msgs.innerHTML='';
+        const banner=document.createElement('div');
+        banner.style.cssText='font-family:monospace;font-size:11px;color:var(--text3);text-align:center;padding:6px 0;';
+        banner.textContent='↩ Restored chat from '+new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        msgs.appendChild(banner);
+        history.forEach(m=>{
+          if(m.role==='user'){addMsg('user',m.content);}
+          else{const em=m.content.match(/ELI5 SUMMARY:\s*([\s\S]+)$/i);addMsg('assistant',em?m.content.slice(0,em.index).trim():m.content,em?em[1].trim():null);}
+        });
+        updateToolbar();
+      }
+    }
+  }catch(e){}
+  updateToolbar();
+})();
+</script>
+</body>
+</html>

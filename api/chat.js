@@ -1,0 +1,35 @@
+export default async function handler(req, res) {
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    const data = await response.json();
+
+    // Forward the exact status + body from Anthropic
+    return res.status(response.status).json(data);
+
+  } catch (err) {
+    console.error('BizWiz API error:', err);
+    return res.status(500).json({
+      type: 'error',
+      error: { type: 'server_error', message: err.message }
+    });
+  }
+}
