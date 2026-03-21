@@ -86,6 +86,19 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .profile-btn{flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text2);padding:8px 10px;border-radius:7px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;text-align:center;}
 .profile-btn:hover{border-color:var(--accent);color:var(--accent);}
 .saved-ind{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);text-align:center;margin-top:4px;min-height:14px;}
+.saved-profiles-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;min-height:0;}
+.saved-profile-chip{display:flex;align-items:center;gap:5px;background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent);padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;max-width:140px;}
+.saved-profile-chip:hover{background:var(--accent);color:var(--bg);}
+.saved-profile-chip .pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.saved-profile-chip .pdel{font-size:11px;opacity:.5;flex-shrink:0;margin-left:2px;line-height:1;padding:0 2px;}
+.saved-profile-chip .pdel:hover{opacity:1;}
+.no-profiles-hint{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.saved-profile-chip{display:flex;align-items:center;gap:5px;background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent);padding:5px 10px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;max-width:130px;}
+.saved-profile-chip:hover{background:var(--accent);color:var(--bg);}
+.saved-profile-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.saved-profile-chip .del-btn{font-size:11px;opacity:.6;flex-shrink:0;margin-left:2px;line-height:1;}
+.saved-profile-chip .del-btn:hover{opacity:1;}
+.no-profiles-hint{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;font-style:italic;}
 
 /* ── GENERATE BUTTON ────────────────────────────────────────── */
 .gen-btn{background:var(--accent);color:var(--bg);border:none;padding:12px 20px;border-radius:9px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;transition:all .2s;width:100%;margin-top:6px;}
@@ -308,6 +321,16 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
     <div class="divider"></div>
 
+    <!-- Saved Profiles -->
+    <div>
+      <div class="sec-title">My Saved Companies</div>
+      <div class="saved-profiles-row" id="savedProfilesRow">
+        <span class="no-profiles-hint">No saved companies yet</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
     <!-- Business Context -->
     <div>
       <div class="sec-title">
@@ -353,8 +376,8 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <textarea id="challenge" placeholder="e.g. Losing deals to a lower-priced competitor..."></textarea>
         </div>
         <div class="profile-actions">
-          <button class="profile-btn" onclick="saveProfile()">💾 Save Profile</button>
-          <button class="profile-btn" onclick="clearProfile()">🗑 Clear</button>
+          <button class="profile-btn" onclick="saveProfile()">💾 Save to My Companies</button>
+          <button class="profile-btn" onclick="clearProfile()">🗑 Clear Form</button>
         </div>
         <div class="saved-ind" id="savedInd"></div>
       </div>
@@ -1084,7 +1107,131 @@ function dismissDisc(){
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
-// ── CHIPS ─────────────────────────────────────────────────────
+// ── MULTI-PROFILE SYSTEM ──────────────────────────────────────
+const PROFILES_KEY = 'bizwiz_profiles'; // array of up to 5 profiles
+const MAX_PROFILES = 5;
+
+function getProfiles(){
+  try{ return JSON.parse(lsGet(PROFILES_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveProfiles(profiles){ lsSet(PROFILES_KEY, JSON.stringify(profiles)); }
+
+function getFormData(){
+  return {
+    companyName: document.getElementById('companyName').value,
+    industry:    document.getElementById('industry').value,
+    stage:       document.getElementById('stage').value,
+    revenue:     document.getElementById('revenue').value,
+    challenge:   document.getElementById('challenge').value,
+    firm,
+    savedAt:     Date.now()
+  };
+}
+
+function fillForm(p){
+  if(p.companyName) document.getElementById('companyName').value = p.companyName;
+  if(p.industry)    document.getElementById('industry').value    = p.industry;
+  if(p.stage)       document.getElementById('stage').value       = p.stage;
+  if(p.revenue)     document.getElementById('revenue').value     = p.revenue;
+  if(p.challenge)   document.getElementById('challenge').value   = p.challenge;
+  if(p.firm){
+    firm = p.firm;
+    document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active', c.querySelector('.firm-name')?.textContent===p.firm));
+  }
+  updateChipsFromProfile();
+}
+
+function renderSavedProfiles(){
+  const row = document.getElementById('savedProfilesRow');
+  if(!row) return;
+  const profiles = getProfiles();
+  if(!profiles.length){
+    row.innerHTML = '<span class="no-profiles-hint">No saved companies yet</span>';
+    return;
+  }
+  row.innerHTML = profiles.map((p,i) => `
+    <div class="saved-profile-chip" onclick="loadSavedProfile(${i})">
+      <span class="pname">🏢 ${p.companyName||'Unnamed'}</span>
+      <span class="pdel" onclick="event.stopPropagation();deleteSavedProfile(${i})" title="Delete">✕</span>
+    </div>`).join('');
+}
+
+function saveProfile(){
+  const name = document.getElementById('companyName').value.trim();
+  if(!name){ toast('Add a company name first.'); return; }
+  const profiles = getProfiles();
+  // Check if already saved — update in place
+  const existing = profiles.findIndex(p => p.companyName.toLowerCase() === name.toLowerCase());
+  if(existing !== -1){
+    profiles[existing] = getFormData();
+    saveProfiles(profiles);
+    renderSavedProfiles();
+    setInd('✓ Updated','var(--green)');
+    toast(`"${name}" updated ✓`);
+    return;
+  }
+  if(profiles.length >= MAX_PROFILES){
+    toast(`Max ${MAX_PROFILES} companies. Delete one first.`);
+    return;
+  }
+  profiles.push(getFormData());
+  saveProfiles(profiles);
+  renderSavedProfiles();
+  updateChipsFromProfile();
+  setInd('✓ Saved','var(--green)');
+  toast(`"${name}" saved ✓`);
+}
+
+function loadSavedProfile(index){
+  const profiles = getProfiles();
+  const p = profiles[index];
+  if(!p) return;
+  fillForm(p);
+  // Remove stale context nudge
+  const nudge = document.getElementById('inlinNudge'); if(nudge) nudge.remove();
+  toast(`"${p.companyName}" loaded ✓`);
+}
+
+function deleteSavedProfile(index){
+  const profiles = getProfiles();
+  const name = profiles[index]?.companyName || 'Profile';
+  profiles.splice(index, 1);
+  saveProfiles(profiles);
+  renderSavedProfiles();
+  toast(`"${name}" deleted`);
+}
+
+// Legacy single-profile key migration
+const PKEY='bizwiz_profile';
+function loadProfile(){
+  // First check new multi-profile system
+  const profiles = getProfiles();
+  if(profiles.length){ renderSavedProfiles(); return; }
+  // Fall back to legacy single profile
+  try{
+    const raw=lsGet(PKEY); if(!raw) return;
+    const p=JSON.parse(raw);
+    fillForm(p);
+    // Migrate to new system
+    if(p.companyName){
+      saveProfiles([p]);
+      lsDel(PKEY);
+      renderSavedProfiles();
+    }
+  }catch(e){}
+}
+
+function clearProfile(){
+  ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
+  ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
+  firm='McKinsey';
+  document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
+  setChips(DEFAULT_CHIPS);
+  setInd('Form cleared','var(--text3)');
+  toast('Form cleared');
+}
+
+function setInd(msg,color){const el=document.getElementById('savedInd');if(el){el.textContent=msg;el.style.color=color;setTimeout(()=>el.textContent='',2500);}}
 const INDUSTRY_CHIPS = {
   'Technology / SaaS':        ['How do we reduce churn?','What\'s our PLG strategy?','How do we expand upmarket?','Build a sales motion for enterprise'],
   'Consumer Goods / Retail':  ['How do we compete with Amazon?','Should we go DTC or wholesale?','How do we build brand loyalty?','Optimize our pricing architecture'],
@@ -1160,41 +1307,6 @@ async function personalizeChips(){
   btn.textContent = '✨ Personalize';
 }
 
-const PKEY='bizwiz_profile';
-function saveProfile(){
-  lsSet(PKEY,JSON.stringify({
-    companyName:document.getElementById('companyName').value,
-    industry:document.getElementById('industry').value,
-    stage:document.getElementById('stage').value,
-    revenue:document.getElementById('revenue').value,
-    challenge:document.getElementById('challenge').value,
-    firm
-  }));
-  updateChipsFromProfile();
-  setInd('✓ Saved','var(--green)');toast('Profile saved ✓');
-}
-function loadProfile(){
-  try{
-    const raw=lsGet(PKEY);if(!raw)return;
-    const p=JSON.parse(raw);
-    if(p.companyName)document.getElementById('companyName').value=p.companyName;
-    if(p.industry)document.getElementById('industry').value=p.industry;
-    if(p.stage)document.getElementById('stage').value=p.stage;
-    if(p.revenue)document.getElementById('revenue').value=p.revenue;
-    if(p.challenge)document.getElementById('challenge').value=p.challenge;
-    if(p.firm){firm=p.firm;document.querySelectorAll('.persona-card').forEach(c=>c.classList.toggle('active',c.querySelector('.firm-name')?.textContent===p.firm));}
-    updateChipsFromProfile();
-  }catch(e){}
-}
-function clearProfile(){
-  lsDel(PKEY);
-  ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
-  ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
-  firm='McKinsey';document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
-  setChips(DEFAULT_CHIPS);
-  setInd('Cleared','var(--text3)');toast('Profile cleared');
-}
-function setInd(msg,color){const el=document.getElementById('savedInd');el.textContent=msg;el.style.color=color;setTimeout(()=>el.textContent='',2500);}
 
 // ── SAMPLE BUSINESSES ─────────────────────────────────────────
 const SAMPLES={
@@ -1262,7 +1374,8 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
   if(lsGet('bizwiz_disc')==='1')document.getElementById('discBar').style.display='none';
   // Profile
   loadProfile();
-  if(lsGet(PKEY))setInd('📂 Profile loaded','var(--text3)');
+  renderSavedProfiles();
+  if(getProfiles().length) setInd('📂 Profiles loaded','var(--text3)');
   // Saved chat
   try{
     const raw=lsGet('bizwiz_chat');
