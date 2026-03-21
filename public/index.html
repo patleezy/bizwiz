@@ -108,8 +108,8 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 /* ── TOOLTIP ────────────────────────────────────────────────── */
 .info-i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:var(--bg4);border:1px solid var(--border2);border-radius:50%;font-size:9px;color:var(--text3);cursor:pointer;position:relative;vertical-align:middle;margin-left:4px;font-style:normal;flex-shrink:0;transition:all .2s;text-transform:none;letter-spacing:0;}
 .info-i:hover{border-color:var(--accent);color:var(--accent);}
-.info-i .tip{display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;font-size:11.5px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--text2);width:210px;line-height:1.55;z-index:300;pointer-events:none;box-shadow:var(--shadow);white-space:normal;text-align:left;text-transform:none;letter-spacing:0;}
-.info-i:hover .tip{display:block;}
+.info-i .tip{display:none;position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;font-size:11.5px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--text2);width:220px;max-width:min(220px, calc(100vw - 32px));line-height:1.55;z-index:9999;pointer-events:none;box-shadow:var(--shadow);white-space:normal;text-align:left;text-transform:none;letter-spacing:0;}
+
 
 /* ── MAIN ───────────────────────────────────────────────────── */
 .main{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative;}
@@ -189,11 +189,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 @media(max-width:768px){
   .sidebar{position:relative;}
   .sidebar.open .sidebar-close{display:flex;}
-  .chips-collapsible{display:none;}
+  .chips-collapsible{display:none;flex-wrap:wrap;}
   .chips-collapsible.open{display:flex;}
-  .chips-toggle{display:flex !important;}
+  .chips-row .chips-toggle{display:flex !important;}
 }
-.chips-toggle{display:none;align-items:center;gap:6px;background:none;border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;margin-bottom:8px;}
+.chips-toggle{display:none;align-items:center;gap:6px;background:none;border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;margin-bottom:0;}
 .chips-toggle:hover{border-color:var(--accent);color:var(--accent);}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
 .chip{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
@@ -271,6 +271,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .copy-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;transition:all .2s;}
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
 
+.color-swatches{display:flex;align-items:center;gap:5px;}
+.color-swatch{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0;}
+.color-swatch:hover{transform:scale(1.2);}
+.color-swatch.active{border-color:var(--text2);transform:scale(1.15);}
+
 /* ── TOAST ──────────────────────────────────────────────────── */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;z-index:999;display:none;animation:fadeUp .3s ease;max-width:280px;}
 .toast.show{display:block;}
@@ -291,6 +296,13 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
   </div>
   <div class="hdr-right">
     <button class="icon-btn" id="sidebarToggle" onclick="toggleSidebar()" style="display:none">☰ Context</button>
+    <div class="color-swatches" id="colorSwatches">
+      <div class="color-swatch active" data-theme="gold"    style="background:#c8a96e" onclick="setColorTheme('gold')"    title="Gold"></div>
+      <div class="color-swatch"        data-theme="emerald" style="background:#4ade80" onclick="setColorTheme('emerald')" title="Emerald"></div>
+      <div class="color-swatch"        data-theme="sapphire"style="background:#60a5fa" onclick="setColorTheme('sapphire')"title="Sapphire"></div>
+      <div class="color-swatch"        data-theme="rose"    style="background:#fb7185" onclick="setColorTheme('rose')"    title="Rose"></div>
+      <div class="color-swatch"        data-theme="violet"  style="background:#a78bfa" onclick="setColorTheme('violet')"  title="Violet"></div>
+    </div>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
   </div>
 </header>
@@ -612,7 +624,7 @@ async function callAPI(messages, system, maxTokens){
   const res = await fetch('/api/chat',{
     method:'POST',
     headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages})
   });
   const data = await res.json();
   if(!res.ok || data.type==='error'){
@@ -1249,6 +1261,8 @@ const INDUSTRY_CHIPS = {
 
 const DEFAULT_CHIPS = ['How do I grow revenue?','Analyze my competitive position','How should I price my product?','Build a go-to-market plan','What are my biggest risks?'];
 
+function isSmallScreen(){ return window.innerWidth <= 768; }
+
 function toggleChips(){
   const container = document.getElementById('chipsContainer');
   const btn = document.getElementById('chipsToggle');
@@ -1261,8 +1275,8 @@ function setChips(prompts){
   const container = document.getElementById('chipsContainer');
   if(!container) return;
   container.innerHTML = prompts.map(p=>`<div class="chip" onclick="usePrompt(this)">${p}</div>`).join('');
-  // On mobile, collapse after update and show toggle
-  if(isMobile && container.classList.contains('chips-collapsible')){
+  // Collapse on small screens after update
+  if(isSmallScreen()){
     container.classList.remove('open');
     const btn = document.getElementById('chipsToggle');
     if(btn) btn.textContent = '▼ Show';
@@ -1362,7 +1376,53 @@ function copySection(btn,encoded){
   });
 }
 
-// ── TOAST ─────────────────────────────────────────────────────
+// ── TOOLTIP POSITIONING (prevents off-screen clipping) ────────
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.info-i').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      const tip = el.querySelector('.tip');
+      if(!tip) return;
+      tip.style.display = 'block';
+      const rect = el.getBoundingClientRect();
+      const tw = tip.offsetWidth || 220;
+      const th = tip.offsetHeight || 120;
+      // Position below by default
+      let top = rect.bottom + 8;
+      let left = rect.left + rect.width/2 - tw/2;
+      // Clamp horizontally
+      left = Math.max(12, Math.min(left, window.innerWidth - tw - 12));
+      // Flip above if would go off bottom
+      if(top + th > window.innerHeight - 12) top = rect.top - th - 8;
+      tip.style.top = top + 'px';
+      tip.style.left = left + 'px';
+    });
+    el.addEventListener('mouseleave',()=>{
+      const tip = el.querySelector('.tip');
+      if(tip) tip.style.display = 'none';
+    });
+  });
+});
+
+// ── DARK MODE COLOR THEMES ─────────────────────────────────────
+const COLOR_THEMES = {
+  gold:    {accent:'#c8a96e', accentBg:'rgba(200,169,110,0.08)', accentBorder:'rgba(200,169,110,0.22)'},
+  emerald: {accent:'#4ade80', accentBg:'rgba(74,222,128,0.08)',  accentBorder:'rgba(74,222,128,0.22)'},
+  sapphire:{accent:'#60a5fa', accentBg:'rgba(96,165,250,0.08)',  accentBorder:'rgba(96,165,250,0.22)'},
+  rose:    {accent:'#fb7185', accentBg:'rgba(251,113,133,0.08)', accentBorder:'rgba(251,113,133,0.22)'},
+  violet:  {accent:'#a78bfa', accentBg:'rgba(167,139,250,0.08)', accentBorder:'rgba(167,139,250,0.22)'},
+};
+
+function setColorTheme(name){
+  const t = COLOR_THEMES[name];
+  if(!t) return;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', t.accent);
+  root.style.setProperty('--accent-bg', t.accentBg);
+  root.style.setProperty('--accent-border', t.accentBorder);
+  lsSet('bizwiz_color', name);
+  // Mark active swatch
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active', s.dataset.theme===name));
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -1370,6 +1430,9 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
   // Theme
   const savedTheme=lsGet('bizwiz_theme');
   if(savedTheme){document.documentElement.setAttribute('data-theme',savedTheme);document.getElementById('themeBtn').textContent=savedTheme==='dark'?'☀️':'🌙';}
+  // Color theme
+  const savedColor=lsGet('bizwiz_color');
+  if(savedColor) setColorTheme(savedColor);
   // Disclaimer
   if(lsGet('bizwiz_disc')==='1')document.getElementById('discBar').style.display='none';
   // Profile
