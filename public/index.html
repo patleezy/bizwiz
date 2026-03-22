@@ -864,12 +864,15 @@ function removeTyping(el){
 }
 
 let mid=0;
+// ── MESSAGE STORE (for copy) ───────────────────────────────────
+const msgStore = new Map();
+
 function addMsg(role,text,eli5=null){
   const msgs=document.getElementById('chatMsgs');
   const el=document.createElement('div');
   el.className='msg'+(role==='user'?' user':'');
   const id='e5'+(++mid);
-  const copyId='cp'+(mid);
+  const copyId='cp'+mid;
   const time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   if(role==='user'){
     el.innerHTML=`<div class="avatar me">👤</div><div class="msg-body"><div class="bubble">${esc(text)}</div><div class="msg-meta">${time}</div></div>`;
@@ -884,34 +887,41 @@ function addMsg(role,text,eli5=null){
         </div>
         <div class="eli5-content" id="${id}">${fmt(eli5)}</div>
       </div>` : '';
-    // Build plain text for copy (main + eli5, no markdown)
+    // Store plain text in map — safe for any characters
     const plainMain = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
     const plainEli5 = eli5 ? '\n\nPlain English Summary:\n' + eli5.replace(/\*\*(.*?)\*\*/g,'$1').trim() : '';
-    const copyText = encodeURIComponent(plainMain + plainEli5);
-    el.innerHTML=`<div class="avatar ai">W</div><div class="msg-body"><div class="bubble">${fmt(text)}${eli5Html}</div><div class="msg-meta"><span>${firm} Partner · ${time}</span><button class="msg-copy" id="${copyId}" onclick="copyMsg('${copyId}','${copyText}')">⧉ Copy</button></div></div>`;
+    msgStore.set(copyId, plainMain + plainEli5);
+    el.innerHTML=`<div class="avatar ai">W</div><div class="msg-body"><div class="bubble">${fmt(text)}${eli5Html}</div><div class="msg-meta"><span>${firm} Partner · ${time}</span><button class="msg-copy" id="${copyId}" onclick="copyMsg('${copyId}')">⧉ Copy</button></div></div>`;
   }
   msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;updateToolbar();
 }
 
-function copyMsg(btnId, encoded){
-  const text = decodeURIComponent(encoded);
-  navigator.clipboard.writeText(text).then(()=>{
-    const btn = document.getElementById(btnId);
+function copyMsg(btnId){
+  const text = msgStore.get(btnId);
+  if(!text){ toast('Nothing to copy.'); return; }
+  const btn = document.getElementById(btnId);
+  const finish = (ok) => {
     if(!btn) return;
-    btn.textContent = '✓ Copied';
-    btn.classList.add('copied');
+    btn.textContent = ok ? '✓ Copied' : '✗ Failed';
+    btn.classList.toggle('copied', ok);
     setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('copied'); }, 1800);
-  }).catch(()=>{
-    // iOS fallback
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;';
-    document.body.appendChild(ta); ta.select();
-    try{ document.execCommand('copy');
-      const btn = document.getElementById(btnId);
-      if(btn){ btn.textContent='✓ Copied'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('copied'); },1800); }
-    }catch(e){ toast('Copy not supported on this browser.'); }
+  };
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(text).then(()=>finish(true)).catch(()=>{
+      // fallback
+      const ta=document.createElement('textarea');
+      ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
+      document.body.appendChild(ta);ta.focus();ta.select();
+      try{document.execCommand('copy');finish(true);}catch(e){finish(false);}
+      document.body.removeChild(ta);
+    });
+  } else {
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    try{document.execCommand('copy');finish(true);}catch(e){finish(false);}
     document.body.removeChild(ta);
-  });
+  }
 }
 
 function toggleEli5(id){
@@ -1045,12 +1055,22 @@ Each section must be detailed and consulting-grade. Use **bold** for key terms. 
 
 function renderReport(text,company,focus){
   const parsed={};
+  // Normalize text — strip markdown headers and bold from section titles
+  const normalized = text.replace(/^#+\s*/gm,'').replace(/\*\*(.*?)\*\*/g,'$1');
   SDEFS.forEach((s,i)=>{
-    const start=text.indexOf(s.key);if(start===-1)return;
-    const from=start+s.key.length;
-    const nexts=SDEFS.slice(i+1).map(n=>text.indexOf(n.key,from)).filter(x=>x!==-1);
-    const end=nexts.length?Math.min(...nexts):text.length;
-    parsed[s.key]=text.slice(from,end).replace(/^[\s\n:*#\d.]+/,'').trim();
+    // Case-insensitive search, also match if model added numbers like "1. EXECUTIVE SUMMARY"
+    const pattern = new RegExp('(?:^|\\n)(?:\\d+\\.\\s*)?' + s.key.replace(/[&]/g,'\\s*&\\s*') + '\\s*(?::|\\n)', 'i');
+    const match = normalized.match(pattern);
+    if(!match || match.index === undefined) return;
+    const from = match.index + match[0].length;
+    // Find next section
+    const nexts = SDEFS.slice(i+1).map(n=>{
+      const np = new RegExp('(?:^|\\n)(?:\\d+\\.\\s*)?' + n.key.replace(/[&]/g,'\\s*&\\s*') + '\\s*(?::|\\n)', 'i');
+      const nm = normalized.match(np);
+      return (nm && nm.index > from) ? nm.index : -1;
+    }).filter(x=>x!==-1);
+    const end = nexts.length ? Math.min(...nexts) : normalized.length;
+    parsed[s.key] = normalized.slice(from,end).replace(/^[\s\n:]+/,'').trim();
   });
   report={company,focus,firm,sections:parsed,raw:text,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
   document.getElementById('reportSetup').style.display='none';
@@ -1397,6 +1417,13 @@ async function personalizeChips(){
     const questions = JSON.parse(clean);
     if(Array.isArray(questions) && questions.length){
       setChips(questions.slice(0,4));
+      // Auto-expand chips so user sees the results
+      const container = document.getElementById('chipsContainer');
+      const btn = document.getElementById('chipsToggle');
+      if(container && !container.classList.contains('open')){
+        container.classList.add('open');
+        if(btn){ btn.classList.add('active'); btn.textContent='▲ Questions'; }
+      }
       toast(`✨ Questions tailored to ${company}`);
     }
   }catch(e){
