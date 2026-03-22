@@ -680,16 +680,23 @@ function buildSystem(){
 
 // ── API CALL ──────────────────────────────────────────────────
 async function callAPI(messages, system, maxTokens){
+  const body = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: maxTokens,
+    messages
+  };
+  // Only include system if non-empty — Anthropic rejects empty string
+  if(system && system.trim()) body.system = system;
+
   const res = await fetch('/api/chat',{
     method:'POST',
     headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,system,messages})
+    body:JSON.stringify(body)
   });
   const data = await res.json();
   if(!res.ok || data.type==='error'){
     throw new Error(data?.error?.message || `HTTP ${res.status}`);
   }
-  // Extract text from any known response shape
   const text = data.content?.[0]?.text
     ?? (typeof data.content==='string' ? data.content : null)
     ?? data.completion
