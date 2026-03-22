@@ -173,7 +173,9 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .bubble h4{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text);margin:8px 0 4px;}
 .msg-meta{font-size:11px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;}
 .msg.user .msg-meta{justify-content:flex-end;}
-.eli5-wrap{margin-top:8px;}
+.msg-copy{background:none;border:1px solid var(--border);color:var(--text3);padding:2px 8px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3px;transition:all .2s;flex-shrink:0;}
+.msg-copy:hover{border-color:var(--accent);color:var(--accent);}
+.msg-copy.copied{border-color:var(--green);color:var(--green);}
 .eli5-toggle-bar{display:flex;align-items:center;gap:8px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:10px;padding:9px 13px;cursor:pointer;transition:all .2s;user-select:none;}
 .eli5-toggle-bar:hover{background:rgba(200,169,110,0.14);}
 .eli5-apple{font-size:15px;line-height:1;}
@@ -493,11 +495,16 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         </div>
       </div>
       <div class="chat-foot">
-        <!-- Chips row — collapsed by default on mobile -->
+        <!-- Options row: questions + personalize + mode toggle -->
         <div class="chips-row">
           <button class="chips-toggle" id="chipsToggle" onclick="toggleChips()">💡 Questions</button>
           <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()">✨ Personalize</button>
+          <div class="input-mode-toggle" style="margin-left:auto;">
+            <div class="mopt active" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
+            <div class="mopt" onclick="setMode(this,'extended')" title="Deep — full consulting analysis">Deep</div>
+          </div>
         </div>
+        <!-- Chips (collapsed by default) -->
         <div class="chips chips-collapsible" id="chipsContainer">
           <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
           <div class="chip" onclick="usePrompt(this)">Analyze my competitive position</div>
@@ -505,12 +512,8 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <div class="chip" onclick="usePrompt(this)">Build a go-to-market plan</div>
           <div class="chip" onclick="usePrompt(this)">What are my biggest risks?</div>
         </div>
-        <!-- Input row with mode toggle inline -->
+        <!-- Input row — full width now -->
         <div class="input-row">
-          <div class="mode-toggle input-mode-toggle">
-            <div class="mopt active" onclick="setMode(this,'concise')" title="Short bullets">C</div>
-            <div class="mopt" onclick="setMode(this,'extended')" title="Full analysis">E</div>
-          </div>
           <textarea class="chat-in" id="chatIn" placeholder="Ask your business question…" rows="1"
             onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send →</button>
@@ -637,9 +640,9 @@ function setPer(el,f){
 
 // ── RESPONSE MODE ─────────────────────────────────────────────
 function setMode(el,m){
-  document.querySelectorAll('.mopt').forEach(o=>o.classList.remove('active'));
-  el.classList.add('active');mode=m;
-  document.getElementById('chatIn').placeholder=m==='concise'?'Ask a quick business question…':'Ask for an in-depth strategic analysis…';
+  document.querySelectorAll('.input-mode-toggle .mopt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+  mode=m;
 }
 
 // ── CONTEXT ───────────────────────────────────────────────────
@@ -866,6 +869,7 @@ function addMsg(role,text,eli5=null){
   const el=document.createElement('div');
   el.className='msg'+(role==='user'?' user':'');
   const id='e5'+(++mid);
+  const copyId='cp'+(mid);
   const time=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
   if(role==='user'){
     el.innerHTML=`<div class="avatar me">👤</div><div class="msg-body"><div class="bubble">${esc(text)}</div><div class="msg-meta">${time}</div></div>`;
@@ -880,9 +884,34 @@ function addMsg(role,text,eli5=null){
         </div>
         <div class="eli5-content" id="${id}">${fmt(eli5)}</div>
       </div>` : '';
-    el.innerHTML=`<div class="avatar ai">W</div><div class="msg-body"><div class="bubble">${fmt(text)}${eli5Html}</div><div class="msg-meta"><span>${firm} Partner · ${time}</span></div></div>`;
+    // Build plain text for copy (main + eli5, no markdown)
+    const plainMain = text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/^#{1,3}\s+/gm,'').trim();
+    const plainEli5 = eli5 ? '\n\nPlain English Summary:\n' + eli5.replace(/\*\*(.*?)\*\*/g,'$1').trim() : '';
+    const copyText = encodeURIComponent(plainMain + plainEli5);
+    el.innerHTML=`<div class="avatar ai">W</div><div class="msg-body"><div class="bubble">${fmt(text)}${eli5Html}</div><div class="msg-meta"><span>${firm} Partner · ${time}</span><button class="msg-copy" id="${copyId}" onclick="copyMsg('${copyId}','${copyText}')">⧉ Copy</button></div></div>`;
   }
   msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;updateToolbar();
+}
+
+function copyMsg(btnId, encoded){
+  const text = decodeURIComponent(encoded);
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById(btnId);
+    if(!btn) return;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('copied'); }, 1800);
+  }).catch(()=>{
+    // iOS fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy');
+      const btn = document.getElementById(btnId);
+      if(btn){ btn.textContent='✓ Copied'; btn.classList.add('copied'); setTimeout(()=>{ btn.textContent='⧉ Copy'; btn.classList.remove('copied'); },1800); }
+    }catch(e){ toast('Copy not supported on this browser.'); }
+    document.body.removeChild(ta);
+  });
 }
 
 function toggleEli5(id){
