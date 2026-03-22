@@ -1046,7 +1046,7 @@ ELI5 SUMMARY
 Each section must be detailed and consulting-grade. Use **bold** for key terms. ELI5 SUMMARY should be 4–5 plain sentences.`;
 
   try{
-    const fullText=await callAPI([{role:'user',content:prompt}],'',2500);
+    const fullText=await callAPI([{role:'user',content:prompt}],'',1500);
     stopProgress();
     renderReport(fullText,company,focus);
   }catch(err){
