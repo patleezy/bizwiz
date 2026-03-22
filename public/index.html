@@ -37,9 +37,34 @@ header{display:flex;align-items:center;justify-content:space-between;padding:13p
 .logo-word{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
 .logo-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;margin-bottom:2px;}
 .logo-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-left:4px;}
-.hdr-right{display:flex;align-items:center;gap:8px;}
-.icon-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:6px 11px;border-radius:7px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:5px;}
-.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── HAMBURGER ──────────────────────────────────────────────── */
+.hamburger{background:none;border:1px solid var(--border);width:38px;height:38px;border-radius:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0;transition:all .2s;flex-shrink:0;}
+.hamburger:hover{border-color:var(--accent);}
+.hamburger span{display:block;width:16px;height:1.5px;background:var(--text2);border-radius:2px;transition:all .2s;}
+.hamburger:hover span{background:var(--accent);}
+
+/* ── MENU DRAWER ────────────────────────────────────────────── */
+.menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;backdrop-filter:blur(2px);}
+.menu-overlay.show{display:block;}
+.menu-drawer{position:fixed;top:0;right:0;bottom:0;width:280px;max-width:85vw;background:var(--bg2);border-left:1px solid var(--border);z-index:151;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow-y:auto;}
+.menu-drawer.open{transform:translateX(0);}
+.menu-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.menu-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--text);}
+.menu-close{background:none;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.menu-close:hover{border-color:var(--accent);color:var(--accent);}
+.menu-section{padding:14px 18px;border-bottom:1px solid var(--border);}
+.menu-section-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.menu-color-row{display:flex;gap:10px;align-items:center;}
+.menu-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0;}
+.menu-swatch:hover{transform:scale(1.15);}
+.menu-swatch.active{border-color:var(--text);transform:scale(1.1);}
+.menu-row-btn{width:100%;text-align:left;background:none;border:none;color:var(--text2);padding:9px 0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;border-bottom:1px solid var(--border);transition:color .2s;display:block;}
+.menu-row-btn:last-child{border-bottom:none;}
+.menu-row-btn:hover{color:var(--accent);}
+.menu-row-btn:disabled{opacity:.35;cursor:not-allowed;}
+.menu-row-btn.menu-danger:hover{color:#fb7185;}
+.menu-about{font-size:12px;color:var(--text3);line-height:1.6;font-style:italic;}
 
 /* ── DISCLAIMER ─────────────────────────────────────────────── */
 .disc-bar{background:var(--bg4);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text3);line-height:1.4;}
@@ -171,37 +196,32 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .thinking-timer{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);}
 @keyframes fadeInMsg{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── CHAT INPUT ─────────────────────────────────────────────── */
-.chat-foot{border-top:1px solid var(--border);padding:12px 16px;background:var(--bg2);}
-.mode-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
-.mode-lbl{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.5px;}
-.mode-toggle{display:flex;background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:2px;gap:2px;}
-.mopt{padding:4px 12px;border-radius:16px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--text3);transition:all .2s;letter-spacing:.3px;}
-.mopt.active{background:var(--accent);color:var(--bg);font-weight:500;}
-.mopt:not(.active):hover{color:var(--text2);}
-.chips-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
-.chips-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);}
 .chips-ai-btn{background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;white-space:nowrap;}
 .chips-ai-btn:hover{border-color:var(--accent);color:var(--accent);}
 .chips-ai-btn:disabled{opacity:.4;cursor:not-allowed;}
 .sidebar-close{display:none;position:absolute;top:14px;right:14px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;align-items:center;justify-content:center;transition:all .2s;z-index:10;}
 .sidebar-close:hover{border-color:var(--accent);color:var(--accent);}
-@media(max-width:768px){
-  .sidebar{position:relative;}
-  .sidebar.open .sidebar-close{display:flex;}
-  .chips-collapsible{display:none;flex-wrap:wrap;}
-  .chips-collapsible.open{display:flex;}
-  .chips-row .chips-toggle{display:flex !important;}
-}
-.chips-toggle{display:none;align-items:center;gap:6px;background:none;border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;margin-bottom:0;}
-.chips-toggle:hover{border-color:var(--accent);color:var(--accent);}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+@media(max-width:768px){.sidebar{position:relative;}.sidebar.open .sidebar-close{display:flex;}}
+
+/* ── CHAT INPUT ─────────────────────────────────────────────── */
+.chat-foot{border-top:1px solid var(--border);padding:10px 14px;background:var(--bg2);}
+.chips-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.chips-toggle{background:none;border:1px solid var(--border);color:var(--text3);padding:4px 10px;border-radius:12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;white-space:nowrap;}
+.chips-toggle:hover,.chips-toggle.active{border-color:var(--accent);color:var(--accent);}
+.chips-toggle.active{background:var(--accent-bg);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.chips-collapsible{display:none;}
+.chips-collapsible.open{display:flex;}
 .chip{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
 .chip:hover{border-color:var(--accent);color:var(--accent);}
-.input-row{display:flex;gap:8px;align-items:flex-end;}
+.input-row{display:flex;gap:7px;align-items:flex-end;}
+.input-mode-toggle{display:flex;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:2px;gap:1px;flex-shrink:0;align-self:flex-end;}
+.input-mode-toggle .mopt{padding:6px 9px;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--text3);transition:all .15s;line-height:1;}
+.input-mode-toggle .mopt.active{background:var(--accent);color:var(--bg);font-weight:600;}
+.input-mode-toggle .mopt:not(.active):hover{color:var(--text2);}
 .chat-in{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:10px 13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:16px;resize:none;min-height:44px;max-height:120px;transition:border .2s;}
 .chat-in:focus{outline:none;border-color:var(--accent);}
-.send-btn{background:var(--accent);color:var(--bg);border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;white-space:nowrap;height:44px;}
+.send-btn{background:var(--accent);color:var(--bg);border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;transition:all .2s;white-space:nowrap;height:44px;flex-shrink:0;}
 .send-btn:hover{opacity:.85;}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;}
 
@@ -294,18 +314,55 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
     <div class="logo-dot"></div>
     <span class="logo-tag">Strategy AI</span>
   </div>
-  <div class="hdr-right">
-    <button class="icon-btn" id="sidebarToggle" onclick="toggleSidebar()" style="display:none">☰ Context</button>
-    <div class="color-swatches" id="colorSwatches">
-      <div class="color-swatch active" data-theme="gold"    style="background:#c8a96e" onclick="setColorTheme('gold')"    title="Gold"></div>
-      <div class="color-swatch"        data-theme="emerald" style="background:#4ade80" onclick="setColorTheme('emerald')" title="Emerald"></div>
-      <div class="color-swatch"        data-theme="sapphire"style="background:#60a5fa" onclick="setColorTheme('sapphire')"title="Sapphire"></div>
-      <div class="color-swatch"        data-theme="rose"    style="background:#fb7185" onclick="setColorTheme('rose')"    title="Rose"></div>
-      <div class="color-swatch"        data-theme="violet"  style="background:#a78bfa" onclick="setColorTheme('violet')"  title="Violet"></div>
-    </div>
-    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">☀️</button>
-  </div>
+  <button class="hamburger" onclick="toggleMenu()" id="hamburgerBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+
+<!-- SLIDE-IN MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+<div class="menu-drawer" id="menuDrawer">
+  <div class="menu-header">
+    <span class="menu-title">Settings</span>
+    <button class="menu-close" onclick="closeMenu()">✕</button>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-label">Accent Color</div>
+    <div class="menu-color-row">
+      <div class="menu-swatch active" data-theme="gold"     style="background:#c8a96e" onclick="setColorTheme('gold')"     title="Gold"></div>
+      <div class="menu-swatch"        data-theme="emerald"  style="background:#4ade80" onclick="setColorTheme('emerald')"  title="Emerald"></div>
+      <div class="menu-swatch"        data-theme="sapphire" style="background:#60a5fa" onclick="setColorTheme('sapphire')" title="Sapphire"></div>
+      <div class="menu-swatch"        data-theme="rose"     style="background:#fb7185" onclick="setColorTheme('rose')"     title="Rose"></div>
+      <div class="menu-swatch"        data-theme="violet"   style="background:#a78bfa" onclick="setColorTheme('violet')"   title="Violet"></div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-label">Display</div>
+    <button class="menu-row-btn" onclick="toggleTheme()">
+      <span id="themeMenuLabel">🌙 Switch to Light Mode</span>
+    </button>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-label">Business Context</div>
+    <button class="menu-row-btn" onclick="openSidebarToContext();closeMenu()">☰ Edit Business Context →</button>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-label">Chat</div>
+    <button class="menu-row-btn" id="menuSaveChat"    onclick="saveChat();closeMenu()"       disabled>💾 Save Chat</button>
+    <button class="menu-row-btn" id="menuExportTxt"   onclick="exportChatTXT();closeMenu()"  disabled>⬇ Export Chat as TXT</button>
+    <button class="menu-row-btn" id="menuExportPdf"   onclick="exportChatPDF();closeMenu()"  disabled>⬇ Export Chat as PDF</button>
+    <button class="menu-row-btn menu-danger" id="menuClearChat" onclick="clearChat();closeMenu()" disabled>🗑 Clear Chat</button>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-section-label">About</div>
+    <div class="menu-about">BizWiz is an AI strategy consultant for educational purposes only. Not a substitute for professional business, legal, or financial advice.</div>
+  </div>
+</div>
 
 <div class="disc-bar" id="discBar">
   <span>⚠️ <strong>Educational use only.</strong> BizWiz uses generative AI — not a substitute for professional business, legal, or financial advice.</span>
@@ -428,32 +485,18 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
     <!-- CHAT PANEL -->
     <div class="chat-panel" id="panel-chat">
-      <div class="chat-toolbar">
-        <button class="tbtn" id="saveChatBtn" onclick="saveChat()" disabled>💾 Save</button>
-        <button class="tbtn" id="exportTxtBtn" onclick="exportChatTXT()" disabled>⬇ TXT</button>
-        <button class="tbtn" id="exportPdfBtn" onclick="exportChatPDF()" disabled>⬇ PDF</button>
-        <button class="tbtn" id="clearChatBtn" onclick="clearChat()" disabled>🗑 Clear</button>
-      </div>
       <div class="chat-msgs" id="chatMsgs">
         <div class="welcome">
           <h3>Welcome to BizWiz</h3>
-          <p>Your AI strategy consultant — powered by McKinsey, Bain, BCG &amp; Deloitte frameworks. Fill in your business context in the sidebar, then ask any strategic question below.</p>
+          <p>Your AI strategy consultant — powered by McKinsey, Bain, BCG &amp; Deloitte frameworks. Fill in your business context, then ask any strategic question.</p>
           <p class="disc-note">⚠️ AI-generated content for educational use only. Not professional advice.</p>
         </div>
       </div>
       <div class="chat-foot">
-        <div class="mode-row">
-          <span class="mode-lbl">Response:</span>
-          <div class="mode-toggle">
-            <div class="mopt active" onclick="setMode(this,'concise')">Concise</div>
-            <div class="mopt" onclick="setMode(this,'extended')">Extended</div>
-          </div>
-          <span class="info-i">ⓘ<span class="tip"><strong>Concise:</strong> 3–5 bullet answers, fast reads.<br><br><strong>Extended:</strong> Full consulting narrative with frameworks and next steps.</span></span>
-        </div>
+        <!-- Chips row — collapsed by default on mobile -->
         <div class="chips-row">
-          <span class="chips-label">Suggested questions</span>
-          <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()" title="Generate questions tailored to your business">✨ Personalize</button>
-          <button class="chips-toggle" id="chipsToggle" onclick="toggleChips()">▼ Show</button>
+          <button class="chips-toggle" id="chipsToggle" onclick="toggleChips()">💡 Questions</button>
+          <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()">✨ Personalize</button>
         </div>
         <div class="chips chips-collapsible" id="chipsContainer">
           <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
@@ -462,7 +505,12 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <div class="chip" onclick="usePrompt(this)">Build a go-to-market plan</div>
           <div class="chip" onclick="usePrompt(this)">What are my biggest risks?</div>
         </div>
+        <!-- Input row with mode toggle inline -->
         <div class="input-row">
+          <div class="mode-toggle input-mode-toggle">
+            <div class="mopt active" onclick="setMode(this,'concise')" title="Short bullets">C</div>
+            <div class="mopt" onclick="setMode(this,'extended')" title="Full analysis">E</div>
+          </div>
           <textarea class="chat-in" id="chatIn" placeholder="Ask your business question…" rows="1"
             onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send →</button>
@@ -555,10 +603,16 @@ function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
 
-// ── MOBILE DETECTION ───────────────────────────────────────────
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-if(isMobile){
-  document.getElementById('sidebarToggle').style.display='flex';
+// ── MENU DRAWER ───────────────────────────────────────────────
+function toggleMenu(){
+  const drawer = document.getElementById('menuDrawer');
+  const overlay = document.getElementById('menuOverlay');
+  const isOpen = drawer.classList.toggle('open');
+  overlay.classList.toggle('show', isOpen);
+}
+function closeMenu(){
+  document.getElementById('menuDrawer').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('show');
 }
 
 // ── THEME ─────────────────────────────────────────────────────
@@ -566,8 +620,10 @@ function toggleTheme(){
   const h=document.documentElement;
   const dark=h.getAttribute('data-theme')==='dark';
   h.setAttribute('data-theme',dark?'light':'dark');
-  document.getElementById('themeBtn').textContent=dark?'🌙':'☀️';
   lsSet('bizwiz_theme',dark?'light':'dark');
+  // Update menu label
+  const lbl = document.getElementById('themeMenuLabel');
+  if(lbl) lbl.textContent = dark ? '☀️ Switch to Dark Mode' : '🌙 Switch to Light Mode';
 }
 
 // ── SIDEBAR ───────────────────────────────────────────────────
@@ -851,7 +907,8 @@ function fmt(t){
 // ── TOOLBAR ───────────────────────────────────────────────────
 function updateToolbar(){
   const has=history.length>0;
-  ['saveChatBtn','exportTxtBtn','exportPdfBtn','clearChatBtn'].forEach(id=>{
+  // Menu drawer buttons
+  ['menuSaveChat','menuExportTxt','menuExportPdf','menuClearChat'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.disabled=!has;
   });
 }
@@ -1268,19 +1325,18 @@ function toggleChips(){
   const btn = document.getElementById('chipsToggle');
   if(!container || !btn) return;
   const isOpen = container.classList.toggle('open');
-  btn.textContent = isOpen ? '▲ Hide' : '▼ Show';
+  btn.classList.toggle('active', isOpen);
+  btn.textContent = isOpen ? '▲ Questions' : '💡 Questions';
 }
 
 function setChips(prompts){
   const container = document.getElementById('chipsContainer');
   if(!container) return;
   container.innerHTML = prompts.map(p=>`<div class="chip" onclick="usePrompt(this)">${p}</div>`).join('');
-  // Collapse on small screens after update
-  if(isSmallScreen()){
-    container.classList.remove('open');
-    const btn = document.getElementById('chipsToggle');
-    if(btn) btn.textContent = '▼ Show';
-  }
+  // Always collapse when chips update
+  container.classList.remove('open');
+  const btn = document.getElementById('chipsToggle');
+  if(btn){ btn.classList.remove('active'); btn.textContent = '💡 Questions'; }
 }
 
 function updateChipsFromProfile(){
@@ -1356,7 +1412,8 @@ function loadSample(key){
   const nudge=document.getElementById('inlinNudge');if(nudge)nudge.remove();
   const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'📄 Dunder Mifflin',wonka:'🍫 Wonka Candy',lumon:'🪴 Lumon Industries'};
   toast(labels[key]+' loaded — ask away!');
-  if(isMobile)document.getElementById('sidebar').classList.remove('open');
+  // Close sidebar on small screens
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
 // ── COPY SECTION ──────────────────────────────────────────────
@@ -1421,7 +1478,7 @@ function setColorTheme(name){
   root.style.setProperty('--accent-border', t.accentBorder);
   lsSet('bizwiz_color', name);
   // Mark active swatch
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active', s.dataset.theme===name));
+  document.querySelectorAll('.menu-swatch').forEach(s=>s.classList.toggle('active', s.dataset.theme===name));
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
@@ -1429,7 +1486,11 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 (function init(){
   // Theme
   const savedTheme=lsGet('bizwiz_theme');
-  if(savedTheme){document.documentElement.setAttribute('data-theme',savedTheme);document.getElementById('themeBtn').textContent=savedTheme==='dark'?'☀️':'🌙';}
+  if(savedTheme){
+    document.documentElement.setAttribute('data-theme',savedTheme);
+    const lbl = document.getElementById('themeMenuLabel');
+    if(lbl) lbl.textContent = savedTheme==='dark' ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode';
+  }
   // Color theme
   const savedColor=lsGet('bizwiz_color');
   if(savedColor) setColorTheme(savedColor);
