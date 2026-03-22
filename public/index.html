@@ -527,7 +527,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
       <!-- Progress Overlay -->
       <div class="prog-overlay" id="progOverlay">
         <div class="prog-title">Building Your Strategy Report…</div>
-        <div class="prog-warning">⏱ This takes 30–60 seconds. Please wait.</div>
+        <div class="prog-warning">⏱ This takes 20–45 seconds. Please wait.</div>
         <div class="prog-stage" id="progStage">Starting up…</div>
         <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
         <div class="prog-pct" id="progPct">0%</div>
@@ -1049,7 +1049,7 @@ ELI5 SUMMARY
 Each section must be detailed and consulting-grade. Use **bold** for key terms. ELI5 SUMMARY should be 4–5 plain sentences.`;
 
   try{
-    const fullText=await callAPI([{role:'user',content:prompt}],'',4000);
+    const fullText=await callAPI([{role:'user',content:prompt}],'',2500);
     stopProgress();
     renderReport(fullText,company,focus);
   }catch(err){
