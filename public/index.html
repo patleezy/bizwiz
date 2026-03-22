@@ -501,7 +501,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()">✨ Personalize</button>
           <div class="input-mode-toggle" style="margin-left:auto;">
             <div class="mopt active" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
-            <div class="mopt" onclick="setMode(this,'extended')" title="Deep — full consulting analysis">Deep</div>
+            
           </div>
         </div>
         <!-- Chips (collapsed by default) -->
@@ -527,7 +527,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
       <!-- Progress Overlay -->
       <div class="prog-overlay" id="progOverlay">
         <div class="prog-title">Building Your Strategy Report…</div>
-        <div class="prog-warning">⏱ This takes 20–45 seconds. Please wait.</div>
+        <div class="prog-warning">⏱ This takes 15–30 seconds. Please wait.</div>
         <div class="prog-stage" id="progStage">Starting up…</div>
         <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
         <div class="prog-pct" id="progPct">0%</div>
@@ -535,9 +535,8 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <div class="pstep" id="ps0"><div class="pdot"></div>Analyzing business situation</div>
           <div class="pstep" id="ps1"><div class="pdot"></div>Identifying key findings</div>
           <div class="pstep" id="ps2"><div class="pdot"></div>Structuring recommendations</div>
-          <div class="pstep" id="ps3"><div class="pdot"></div>Building implementation roadmap</div>
-          <div class="pstep" id="ps4"><div class="pdot"></div>Assessing risks &amp; mitigants</div>
-          <div class="pstep" id="ps5"><div class="pdot"></div>Writing plain-English summary</div>
+          <div class="pstep" id="ps3"><div class="pdot"></div>Writing next steps</div>
+          <div class="pstep" id="ps4"><div class="pdot"></div>Writing plain-English summary</div>
         </div>
       </div>
 
@@ -961,11 +960,10 @@ function updateToolbar(){
 
 // ── REPORT PROGRESS ───────────────────────────────────────────
 const STAGES=[
-  {label:'Analyzing business situation…',pct:14},
-  {label:'Identifying key findings…',pct:28},
-  {label:'Structuring recommendations…',pct:46},
-  {label:'Building implementation roadmap…',pct:62},
-  {label:'Assessing risks & mitigants…',pct:78},
+  {label:'Analyzing business situation…',pct:18},
+  {label:'Identifying key findings…',pct:36},
+  {label:'Structuring recommendations…',pct:58},
+  {label:'Writing next steps…',pct:78},
   {label:'Writing plain-English summary…',pct:92},
 ];
 
@@ -1006,11 +1004,9 @@ function stopProgress(){
 // ── GENERATE REPORT ───────────────────────────────────────────
 const SDEFS=[
   {key:'EXECUTIVE SUMMARY',icon:'📌',label:'Executive Summary'},
-  {key:'SITUATION ANALYSIS',icon:'🔍',label:'Situation Analysis'},
   {key:'KEY FINDINGS',icon:'💡',label:'Key Findings'},
   {key:'STRATEGIC RECOMMENDATIONS',icon:'🎯',label:'Strategic Recommendations'},
-  {key:'IMPLEMENTATION ROADMAP',icon:'🗺️',label:'Implementation Roadmap'},
-  {key:'RISKS & MITIGANTS',icon:'⚠️',label:'Risks & Mitigants'},
+  {key:'NEXT STEPS',icon:'🚀',label:'Next Steps (30/60/90 Days)'},
   {key:'ELI5 SUMMARY',icon:'🍎',label:'ELI5 — Plain English'},
 ];
 
@@ -1018,12 +1014,13 @@ async function generateReport(){
   const focus=document.getElementById('reportFocus').value;
   if(!focus){toast('Select a report focus first.');return;}
 
-  // Soft warn if no context but don't block
+  // Hard block — require context before generating
   if(!hasContext()){
     const nudge=document.getElementById('reportCtxNudge');
     if(nudge){nudge.style.display='flex';nudge.scrollIntoView({behavior:'smooth',block:'nearest'});}
-    // Give user 2s to see nudge, then proceed anyway if they click generate again
-    toast('Tip: Add business context for a more tailored report.');
+    toast('Add your business context first — company name, industry, or challenge.');
+    btn.disabled=false;btn.textContent='⚡ Generate Report';
+    return;
   }
 
   const btn=document.getElementById('reportBtn');
