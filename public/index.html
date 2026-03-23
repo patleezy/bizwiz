@@ -544,7 +544,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
       <div id="reportSetup" class="report-setup">
         <div>
           <div class="report-setup-title">Generate a Strategy Report</div>
-          <div class="report-setup-sub">Full 7-section consulting document · 30–60 seconds</div>
+          <div class="report-setup-sub">4-section strategy snapshot · 15–30 seconds</div>
         </div>
 
         <!-- Context nudge — shown when no context filled in -->
@@ -1046,7 +1046,7 @@ ELI5 SUMMARY
 Each section must be detailed and consulting-grade. Use **bold** for key terms. ELI5 SUMMARY should be 4–5 plain sentences.`;
 
   try{
-    const fullText=await callAPI([{role:'user',content:prompt}],'',1500);
+    const fullText=await callAPI([{role:'user',content:prompt}],'',2500);
     stopProgress();
     renderReport(fullText,company,focus);
   }catch(err){
