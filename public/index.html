@@ -290,8 +290,14 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .ctx-nudge-btn{background:var(--accent);color:var(--bg);border:none;padding:7px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;cursor:pointer;white-space:nowrap;transition:opacity .2s;margin-top:8px;}
 .ctx-nudge-btn:hover{opacity:.85;}
 
-.copy-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;transition:all .2s;}
+.copy-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text3);padding:3px 9px;border-radius:5px;cursor:pointer;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.5px;transition:all .2s;}
 .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+.source-link{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);text-decoration:none;transition:color .2s;}
+.source-link:last-child{border-bottom:none;}
+.source-link:hover .source-title{color:var(--accent);}
+.source-icon{flex-shrink:0;font-size:13px;margin-top:1px;}
+.source-title{font-size:13px;color:var(--text2);line-height:1.5;}
+.sources-body{display:flex;flex-direction:column;}
 
 .color-swatches{display:flex;align-items:center;gap:5px;}
 .color-swatch{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0;}
@@ -532,7 +538,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
         <div class="prog-pct" id="progPct">0%</div>
         <div class="prog-steps">
-          <div class="pstep" id="ps0"><div class="pdot"></div>Analyzing business situation</div>
+          <div class="pstep" id="ps0"><div class="pdot"></div>Searching the web for real-time data</div>
           <div class="pstep" id="ps1"><div class="pdot"></div>Identifying key findings</div>
           <div class="pstep" id="ps2"><div class="pdot"></div>Structuring recommendations</div>
           <div class="pstep" id="ps3"><div class="pdot"></div>Writing next steps</div>
@@ -544,7 +550,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
       <div id="reportSetup" class="report-setup">
         <div>
           <div class="report-setup-title">Generate a Strategy Report</div>
-          <div class="report-setup-sub">4-section strategy snapshot · 15–30 seconds</div>
+          <div class="report-setup-sub">4-section strategy snapshot · live web research · 20–40 seconds</div>
         </div>
 
         <!-- Context nudge — shown when no context filled in -->
@@ -960,11 +966,11 @@ function updateToolbar(){
 
 // ── REPORT PROGRESS ───────────────────────────────────────────
 const STAGES=[
-  {label:'Analyzing business situation…',pct:18},
-  {label:'Identifying key findings…',pct:36},
-  {label:'Structuring recommendations…',pct:58},
-  {label:'Writing next steps…',pct:78},
-  {label:'Writing plain-English summary…',pct:92},
+  {label:'Searching the web for real-time data…',pct:15},
+  {label:'Analyzing business situation…',pct:30},
+  {label:'Identifying key findings…',pct:50},
+  {label:'Structuring recommendations…',pct:68},
+  {label:'Writing next steps & summary…',pct:88},
 ];
 
 function startProgress(){
@@ -1025,30 +1031,26 @@ async function generateReport(){
 
   const btn=document.getElementById('reportBtn');
   btn.disabled=true;btn.textContent='⏳ Generating…';
-  // Hide setup panel during generation
   document.getElementById('reportSetup').style.display='none';
   startProgress();
+
   const ctx=getCtx();
   const company=document.getElementById('companyName').value.trim()||'Your Company';
-  const prompt=`You are a ${firm} Senior Partner. Generate a comprehensive strategy report on: "${focus}".
-${ctx?'Client context: '+ctx:''}
-
-Use EXACTLY these section headers on their own lines with no numbers or bullets before them:
-
-EXECUTIVE SUMMARY
-SITUATION ANALYSIS
-KEY FINDINGS
-STRATEGIC RECOMMENDATIONS
-IMPLEMENTATION ROADMAP
-RISKS & MITIGANTS
-ELI5 SUMMARY
-
-Each section must be detailed and consulting-grade. Use **bold** for key terms. ELI5 SUMMARY should be 4–5 plain sentences.`;
+  const industry=document.getElementById('industry').value||'';
 
   try{
-    const fullText=await callAPI([{role:'user',content:prompt}],'',2500);
+    // Call /api/report — handles Tavily search + Claude in one request
+    const res = await fetch('/api/report', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ company, industry, focus, firm, ctx })
+    });
+    const data = await res.json();
+    if(!res.ok || data.type==='error'){
+      throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    }
     stopProgress();
-    renderReport(fullText,company,focus);
+    renderReport(data.text, company, focus, data.sources || []);
   }catch(err){
     stopProgress();
     document.getElementById('reportSetup').style.display='flex';
@@ -1057,7 +1059,7 @@ Each section must be detailed and consulting-grade. Use **bold** for key terms. 
   btn.disabled=false;btn.textContent='⚡ Generate Report';
 }
 
-function renderReport(text,company,focus){
+function renderReport(text,company,focus,sources=[]){
   const parsed={};
 
   // Bulletproof parser — pure string search, no regex, cannot throw
@@ -1091,7 +1093,7 @@ function renderReport(text,company,focus){
   const rc=document.getElementById('reportContent');
   rc.style.display='block';
   document.getElementById('reportTitle').textContent=`${focus} — ${company}`;
-  document.getElementById('reportMeta').textContent=`${firm} Framework  •  ${report.date}`;
+  document.getElementById('reportMeta').textContent=`${firm} Framework  •  ${report.date}  •  🌐 Live Research`;
   const sec=document.getElementById('reportSections');
   sec.innerHTML='';
 
@@ -1111,6 +1113,22 @@ function renderReport(text,company,focus){
     card.innerHTML=`<div class="rcard-hdr"><div class="rcard-icon">${s.icon}</div><div class="rcard-lbl">${s.label}</div><button class="copy-btn" onclick="copySection(this,'${encodeURIComponent(plainText)}')">Copy</button></div><div class="rcard-body">${fmt(c)}</div>`;
     sec.appendChild(card);
   });
+
+  // Sources card
+  if(sources && sources.length > 0){
+    const sCard=document.createElement('div');sCard.className='rcard';
+    const sourceLinks = sources.map(s=>
+      `<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-link">
+        <span class="source-icon">🔗</span>
+        <span class="source-title">${s.title}</span>
+      </a>`
+    ).join('');
+    sCard.innerHTML=`<div class="rcard-hdr"><div class="rcard-icon">🌐</div><div class="rcard-lbl">Sources — Real-Time Research</div></div><div class="rcard-body sources-body">${sourceLinks}</div>`;
+    sec.appendChild(sCard);
+  }
+
+  // Store sources in report object for exports
+  report.sources = sources;
 }
 
 // ── SAFE DOWNLOAD / PRINT ─────────────────────────────────────
