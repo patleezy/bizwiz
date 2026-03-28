@@ -113,6 +113,12 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .persona-rec.show{display:flex;}
 .persona-rec-text{flex:1;line-height:1.4;}
 .persona-rec-apply{background:var(--accent);color:var(--bg);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.fw-callout{display:flex;align-items:flex-start;gap:10px;background:var(--accent-bg);border:1px solid var(--accent-border);border-left:3px solid var(--accent);border-radius:8px;padding:10px 13px;margin:10px 0;}
+.fw-callout-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.fw-callout-body{display:flex;flex-direction:column;gap:3px;}
+.fw-callout-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--accent);}
+.fw-callout-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-top:2px;}
+.fw-callout-def{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);line-height:1.5;}
 .ctx-switch-note{display:flex;align-items:center;gap:8px;padding:6px 12px;margin:4px 0;background:transparent;border-left:2px solid var(--border2);font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.3px;}
 .persona-card:hover{border-color:var(--accent);}
 .persona-card.active{border-color:var(--accent);background:var(--accent-bg);}
@@ -785,7 +791,9 @@ function toggleFrameworkExplainer(on){
   lsSet('bizwiz_frameworks', on ? 'on' : 'off');
 }
 
-const FRAMEWORK_INSTR = `Whenever you mention a named consulting framework, model, or methodology (e.g. BCG Growth-Share Matrix, 7-S Framework, Jobs-to-be-Done, Porter's Five Forces, MECE, OKRs, Blue Ocean Strategy, Net Promoter System, etc.), immediately follow it with a parenthetical plain-English definition in italics. Example: "BCG's Growth-Share Matrix *(a 2x2 tool that classifies your products by market share and growth rate to decide where to invest, hold, or cut)*". Keep definitions to one sentence max.`;
+const FRAMEWORK_INSTR = `Whenever you mention a named consulting framework, model, or methodology (e.g. BCG Growth-Share Matrix, 7-S Framework, Jobs-to-be-Done, Porter's Five Forces, MECE, OKRs, Blue Ocean Strategy, Net Promoter System, 3 Horizons of Growth, etc.), output a framework callout on its own line using EXACTLY this format:
+[[FRAMEWORK: Framework Name | One plain-English sentence explaining what it is and how it works.]]
+Place this immediately after the sentence that mentions the framework. Do not use asterisks, italics, or parentheses for framework definitions — only use the [[FRAMEWORK: | ]] format.`;
 
 function buildSystem(){
   const persona=PERSONAS[firm]||PERSONAS.McKinsey;
@@ -1059,12 +1067,26 @@ function toggleEli5(id){
 }
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmt(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+  // Extract [[FRAMEWORK: Name | Def]] markers before HTML escaping
+  const fwBlocks = [];
+  t = t.replace(/\[\[FRAMEWORK:\s*([^|]+)\|([^\]]+)\]\]/g, (_, name, def) => {
+    const idx = fwBlocks.length;
+    fwBlocks.push(`<div class="fw-callout"><span class="fw-callout-icon">💡</span><div class="fw-callout-body"><strong class="fw-callout-name">${name.trim()}</strong><span class="fw-callout-label">What this means</span><span class="fw-callout-def">${def.trim()}</span></div></div>`);
+    return `\x00FW${idx}\x00`;
+  });
+  // Apply bold before escaping so ** markers survive
+  t = t.replace(/\*\*(.*?)\*\*/g, '\x00B$1\x00B');
+  let html = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\x00B(.*?)\x00B/g,'<strong>$1</strong>')
     .replace(/^#{1,3}\s+(.+)$/gm,'<h4>$1</h4>')
     .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>)/g,'<ul>$1</ul>')
     .replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+  // Restore framework callout blocks
+  fwBlocks.forEach((block, i) => {
+    html = html.replace(`\x00FW${i}\x00`, `</p>${block}<p>`);
+  });
+  return html;
 }
 
 // ── TOOLBAR ───────────────────────────────────────────────────
