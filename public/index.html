@@ -64,7 +64,16 @@ header{display:flex;align-items:center;justify-content:space-between;padding:13p
 .menu-row-btn:hover{color:var(--accent);}
 .menu-row-btn:disabled{opacity:.35;cursor:not-allowed;}
 .menu-row-btn.menu-danger:hover{color:#fb7185;}
-.menu-about{font-size:12px;color:var(--text3);line-height:1.6;font-style:italic;}
+.menu-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
+.menu-toggle-row:last-child{border-bottom:none;}
+.menu-toggle-label{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text2);}
+.menu-toggle-desc{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--text3);margin-top:1px;}
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:background .2s;}
+.toggle-switch input:checked + .toggle-track{background:var(--accent);}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none;}
+.toggle-switch input:checked + .toggle-track .toggle-thumb{transform:translateX(16px);}
 
 /* ── DISCLAIMER ─────────────────────────────────────────────── */
 .disc-bar{background:var(--bg4);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--text3);line-height:1.4;}
@@ -355,6 +364,16 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
     <button class="menu-row-btn" onclick="toggleTheme()">
       <span id="themeMenuLabel">🌙 Switch to Light Mode</span>
     </button>
+    <div class="menu-toggle-row">
+      <div>
+        <div class="menu-toggle-label">📖 Explain frameworks</div>
+        <div class="menu-toggle-desc">Define each consulting framework in plain English</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="frameworkToggle" onchange="toggleFrameworkExplainer(this.checked)">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      </label>
+    </div>
   </div>
 
   <div class="menu-section">
@@ -758,13 +777,22 @@ const PERSONAS={
   Deloitte:`You are a Managing Director at Deloitte Consulting with deep operational expertise across transformation, technology, and organizational design. You approach problems through enterprise risk, operational efficiency, and scalability.`
 };
 
+// ── FRAMEWORK EXPLAINER ───────────────────────────────────────
+let explainFrameworks = lsGet('bizwiz_frameworks') === 'on';
+
+function toggleFrameworkExplainer(on){
+  explainFrameworks = on;
+  lsSet('bizwiz_frameworks', on ? 'on' : 'off');
+}
+
+const FRAMEWORK_INSTR = `Whenever you mention a named consulting framework, model, or methodology (e.g. BCG Growth-Share Matrix, 7-S Framework, Jobs-to-be-Done, Porter's Five Forces, MECE, OKRs, Blue Ocean Strategy, Net Promoter System, etc.), immediately follow it with a parenthetical plain-English definition in italics. Example: "BCG's Growth-Share Matrix *(a 2x2 tool that classifies your products by market share and growth rate to decide where to invest, hold, or cut)*". Keep definitions to one sentence max.`;
+
 function buildSystem(){
   const persona=PERSONAS[firm]||PERSONAS.McKinsey;
   const ctx=getCtx();
-  const modeInstr=mode==='concise'
-    ?`Be CONCISE: one framing sentence, name the framework, give 3–5 punchy bullet recommendations (1–2 sentences each), end with 2–3 next steps. Under 200 words total.`
-    :`Provide a FULL consulting response: strategic framing (2–3 sentences), explain the framework, give 4–6 recommendations with rationale, include trade-offs, end with 30/60/90-day next steps.`;
-  return `${persona}\n\n${ctx?'CLIENT CONTEXT: '+ctx:'No client context provided — answer in general terms.'}\n\n${modeInstr}\n\nAfter your response, append exactly "ELI5 SUMMARY:" followed by 3–4 simple sentences explaining the same advice for someone with no business background.`;
+  const modeInstr=`Be CONCISE: one framing sentence, name the framework, give 3–5 punchy bullet recommendations (1–2 sentences each), end with 2–3 next steps. Under 200 words total.`;
+  const frameworkInstr = explainFrameworks ? `\n\n${FRAMEWORK_INSTR}` : '';
+  return `${persona}\n\n${ctx?'CLIENT CONTEXT: '+ctx:'No client context provided — answer in general terms.'}\n\n${modeInstr}${frameworkInstr}\n\nAfter your response, append exactly "ELI5 SUMMARY:" followed by 3–4 simple sentences explaining the same advice for someone with no business background.`;
 }
 
 // ── API CALL ──────────────────────────────────────────────────
@@ -1127,7 +1155,7 @@ async function generateReport(){
     const res = await fetch('/api/report', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ company, industry, focus, firm, ctx })
+      body: JSON.stringify({ company, industry, focus, firm, ctx, explainFrameworks })
     });
     const data = await res.json();
     if(!res.ok || data.type==='error'){
@@ -1680,6 +1708,13 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
   // Color theme
   const savedColor=lsGet('bizwiz_color');
   if(savedColor) setColorTheme(savedColor);
+  // Framework explainer
+  const savedFW = lsGet('bizwiz_frameworks');
+  if(savedFW === 'on'){
+    explainFrameworks = true;
+    const toggle = document.getElementById('frameworkToggle');
+    if(toggle) toggle.checked = true;
+  }
   // Disclaimer
   if(lsGet('bizwiz_disc')==='1')document.getElementById('discBar').style.display='none';
   // Profile

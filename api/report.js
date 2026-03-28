@@ -14,9 +14,13 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { company, industry, focus, firm, ctx } = body;
+    const { company, industry, focus, firm, ctx, explainFrameworks } = body;
 
     if (!focus) return res.status(400).json({ type: 'error', error: { message: 'Missing report focus' } });
+
+    const FRAMEWORK_INSTR = explainFrameworks
+      ? `\n\nWhenever you mention a named consulting framework, model, or methodology, immediately follow it with a parenthetical plain-English definition in italics. Example: "BCG's Growth-Share Matrix *(a 2x2 tool that classifies products by market share and growth rate)*". One sentence max.`
+      : '';
 
     // ── STEP 1: BUILD TAVILY SEARCH QUERIES ──────────────────────
     const year = new Date().getFullYear();
@@ -68,7 +72,7 @@ STRATEGIC RECOMMENDATIONS
 NEXT STEPS
 ELI5 SUMMARY
 
-Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FINDINGS: 3–4 specific bullet points grounded in the market data above. STRATEGIC RECOMMENDATIONS: 3–4 specific actionable recommendations. NEXT STEPS: specific 30/60/90-day actions. ELI5 SUMMARY: 3 plain sentences. Use **bold** for key terms. Where relevant, reference specific data points from the market intelligence.`;
+Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FINDINGS: 3–4 specific bullet points grounded in the market data above. STRATEGIC RECOMMENDATIONS: 3–4 specific actionable recommendations. NEXT STEPS: specific 30/60/90-day actions. ELI5 SUMMARY: 3 plain sentences. Use **bold** for key terms. Where relevant, reference specific data points from the market intelligence.${FRAMEWORK_INSTR}`;
 
     // ── STEP 4: CALL CLAUDE ──────────────────────────────────────
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
