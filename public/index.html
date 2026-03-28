@@ -100,7 +100,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
 /* ── PERSONA GRID ───────────────────────────────────────────── */
 .persona-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.persona-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 8px;cursor:pointer;transition:all .2s;text-align:center;}
+.persona-rec{display:none;align-items:center;gap:7px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;}
+.persona-rec.show{display:flex;}
+.persona-rec-text{flex:1;line-height:1.4;}
+.persona-rec-apply{background:var(--accent);color:var(--bg);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.ctx-switch-note{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:6px 0;background:var(--bg3);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.3px;}
 .persona-card:hover{border-color:var(--accent);}
 .persona-card.active{border-color:var(--accent);background:var(--accent-bg);}
 .firm-name{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--accent);}
@@ -421,7 +425,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         </div>
         <div class="form-group">
           <label>Industry</label>
-          <select id="industry">
+          <select id="industry" onchange="suggestPersona()">
             <option value="">Select...</option>
             <option>Technology / SaaS</option><option>Consumer Goods / Retail</option>
             <option>Healthcare / Life Sciences</option><option>Financial Services</option>
@@ -450,7 +454,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         </div>
         <div class="form-group">
           <label>Key Challenge (optional)</label>
-          <textarea id="challenge" placeholder="e.g. Losing deals to a lower-priced competitor..."></textarea>
+          <textarea id="challenge" placeholder="e.g. Losing deals to a lower-priced competitor..." oninput="suggestPersona()"></textarea>
         </div>
         <div class="profile-actions">
           <button class="profile-btn" onclick="saveProfile()">💾 Save to My Companies</button>
@@ -467,6 +471,12 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
       <div class="sec-title">
         Consultant Persona
         <span class="info-i">ⓘ<span class="tip"><strong>McKinsey</strong> — Strategy pivots, org redesign, complex multi-division problems.<br><br><strong>Bain</strong> — Growth, PE-backed cos, customer loyalty &amp; commercial diligence.<br><br><strong>BCG</strong> — Innovation, new market entry, disruptive business models.<br><br><strong>Deloitte</strong> — Ops transformation, tech implementation, risk &amp; compliance.</span></span>
+      </div>
+      <!-- Auto-suggest recommendation -->
+      <div class="persona-rec" id="personaRec">
+        <span>💡</span>
+        <span class="persona-rec-text" id="personaRecText"></span>
+        <button class="persona-rec-apply" id="personaRecBtn" onclick="applyRecommendedPersona()">Apply</button>
       </div>
       <div class="persona-grid">
         <div class="persona-card active" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
@@ -640,7 +650,78 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 // ── PERSONA ───────────────────────────────────────────────────
 function setPer(el,f){
   document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');firm=f;
+  el.classList.add('active');
+  firm=f;
+  // Hide recommendation once user manually picks
+  const rec = document.getElementById('personaRec');
+  if(rec) rec.classList.remove('show');
+}
+
+// ── PERSONA RECOMMENDATION ─────────────────────────────────────
+const PERSONA_RULES = [
+  // industry keywords → firm
+  {keywords:['hospitality','food','beverage','restaurant','retail','consumer','ecommerce','e-commerce'], firm:'Bain', reason:'Bain excels at growth & customer loyalty for consumer businesses'},
+  {keywords:['technology','saas','software','fintech','ai','data','cloud'], firm:'BCG', reason:'BCG leads on tech innovation & digital transformation'},
+  {keywords:['healthcare','life sciences','biotech','pharma','medical'], firm:'McKinsey', reason:'McKinsey specializes in complex healthcare strategy'},
+  {keywords:['manufacturing','industrial','aerospace','defense','supply chain'], firm:'McKinsey', reason:'McKinsey is strongest for complex multi-division operations'},
+  {keywords:['financial','banking','insurance','private equity','investment'], firm:'Bain', reason:'Bain dominates PE-backed & financial services strategy'},
+  {keywords:['non-profit','education','government','public'], firm:'Deloitte', reason:'Deloitte leads in public sector & institutional transformation'},
+  // challenge keywords → firm
+  {keywords:['operations','efficiency','technology','implementation','compliance','risk'], firm:'Deloitte', reason:'Deloitte is strongest for ops transformation & tech'},
+  {keywords:['growth','revenue','market','customer','loyalty','brand'], firm:'Bain', reason:'Bain specializes in commercial growth & customer strategy'},
+  {keywords:['innovation','disruption','new market','entry','digital'], firm:'BCG', reason:'BCG leads on innovation & new market strategy'},
+  {keywords:['restructure','reorganize','pivot','complexity','division'], firm:'McKinsey', reason:'McKinsey excels at org redesign & strategic pivots'},
+];
+
+let _recommendedFirm = null;
+
+function suggestPersona(){
+  const industry = (document.getElementById('industry')?.value || '').toLowerCase();
+  const challenge = (document.getElementById('challenge')?.value || '').toLowerCase();
+  const combined = industry + ' ' + challenge;
+  if(!combined.trim()){ hidePersonaRec(); return; }
+
+  for(const rule of PERSONA_RULES){
+    if(rule.keywords.some(k => combined.includes(k))){
+      // Only show if different from current selection
+      if(rule.firm !== firm){
+        _recommendedFirm = rule.firm;
+        const rec = document.getElementById('personaRec');
+        const txt = document.getElementById('personaRecText');
+        if(rec && txt){
+          txt.textContent = `Recommended: ${rule.firm} — ${rule.reason}`;
+          rec.classList.add('show');
+        }
+        return;
+      }
+    }
+  }
+  hidePersonaRec();
+}
+
+function hidePersonaRec(){
+  _recommendedFirm = null;
+  const rec = document.getElementById('personaRec');
+  if(rec) rec.classList.remove('show');
+}
+
+function applyRecommendedPersona(){
+  if(!_recommendedFirm) return;
+  const card = [...document.querySelectorAll('.persona-card')]
+    .find(c => c.querySelector('.firm-name')?.textContent === _recommendedFirm);
+  if(card) setPer(card, _recommendedFirm);
+  hidePersonaRec();
+}
+
+// ── COMPANY CONTEXT NOTE IN CHAT ───────────────────────────────
+function injectContextNote(companyName, action='loaded'){
+  const msgs = document.getElementById('chatMsgs');
+  if(!msgs || !companyName || companyName === 'Your Company') return;
+  const el = document.createElement('div');
+  el.className = 'ctx-switch-note';
+  el.innerHTML = `🏢 ${companyName} ${action} · ${firm} persona active`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 // ── RESPONSE MODE ─────────────────────────────────────────────
@@ -1338,6 +1419,8 @@ function saveProfile(){
   saveProfiles(profiles);
   renderSavedProfiles();
   updateChipsFromProfile();
+  suggestPersona();
+  injectContextNote(name, 'context saved');
   setInd('✓ Saved','var(--green)');
   toast(`"${name}" saved ✓`);
 }
@@ -1347,8 +1430,9 @@ function loadSavedProfile(index){
   const p = profiles[index];
   if(!p) return;
   fillForm(p);
-  // Remove stale context nudge
   const nudge = document.getElementById('inlinNudge'); if(nudge) nudge.remove();
+  suggestPersona();
+  injectContextNote(p.companyName, 'profile loaded');
   toast(`"${p.companyName}" loaded ✓`);
 }
 
@@ -1510,7 +1594,8 @@ function loadSample(key){
   const nudge=document.getElementById('inlinNudge');if(nudge)nudge.remove();
   const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'📄 Dunder Mifflin',wonka:'🍫 Wonka Candy',lumon:'🪴 Lumon Industries'};
   toast(labels[key]+' loaded — ask away!');
-  // Close sidebar on small screens
+  suggestPersona();
+  injectContextNote(SAMPLES[key].companyName, 'context loaded');
   if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
