@@ -104,7 +104,7 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 .persona-rec.show{display:flex;}
 .persona-rec-text{flex:1;line-height:1.4;}
 .persona-rec-apply{background:var(--accent);color:var(--bg);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;white-space:nowrap;flex-shrink:0;}
-.ctx-switch-note{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:6px 0;background:var(--bg3);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.3px;}
+.ctx-switch-note{display:flex;align-items:center;gap:8px;padding:6px 12px;margin:4px 0;background:transparent;border-left:2px solid var(--border2);font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:.3px;}
 .persona-card:hover{border-color:var(--accent);}
 .persona-card.active{border-color:var(--accent);background:var(--accent-bg);}
 .firm-name{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--accent);}
@@ -714,12 +714,15 @@ function applyRecommendedPersona(){
 }
 
 // ── COMPANY CONTEXT NOTE IN CHAT ───────────────────────────────
-function injectContextNote(companyName, action='loaded'){
+function injectContextNote(companyName){
   const msgs = document.getElementById('chatMsgs');
   if(!msgs || !companyName || companyName === 'Your Company') return;
+  // Remove any existing context note to avoid stacking
+  const existing = msgs.querySelector('.ctx-switch-note');
+  if(existing) existing.remove();
   const el = document.createElement('div');
   el.className = 'ctx-switch-note';
-  el.innerHTML = `🏢 ${companyName} ${action} · ${firm} persona active`;
+  el.innerHTML = `🏢 Context: <strong>${companyName}</strong>`;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -1420,7 +1423,7 @@ function saveProfile(){
   renderSavedProfiles();
   updateChipsFromProfile();
   suggestPersona();
-  injectContextNote(name, 'context saved');
+  injectContextNote(name);
   setInd('✓ Saved','var(--green)');
   toast(`"${name}" saved ✓`);
 }
@@ -1432,7 +1435,7 @@ function loadSavedProfile(index){
   fillForm(p);
   const nudge = document.getElementById('inlinNudge'); if(nudge) nudge.remove();
   suggestPersona();
-  injectContextNote(p.companyName, 'profile loaded');
+  injectContextNote(p.companyName);
   toast(`"${p.companyName}" loaded ✓`);
 }
 
@@ -1595,7 +1598,7 @@ function loadSample(key){
   const labels={krusty:'🍔 Krusty Burger',acme:'💣 Acme Corp',starry:'🚀 Stark Industries',pawnee:'📄 Dunder Mifflin',wonka:'🍫 Wonka Candy',lumon:'🪴 Lumon Industries'};
   toast(labels[key]+' loaded — ask away!');
   suggestPersona();
-  injectContextNote(SAMPLES[key].companyName, 'context loaded');
+  injectContextNote(SAMPLES[key].companyName);
   if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
