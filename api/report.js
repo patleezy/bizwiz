@@ -1,10 +1,32 @@
+// Simple in-memory rate limiter (per serverless instance; 5 req/min per IP)
+const _rl = new Map();
+function rateLimit(ip, max = 5, windowMs = 60000) {
+  const now = Date.now();
+  const e = _rl.get(ip) || { n: 0, reset: now + windowMs };
+  if (now > e.reset) { e.n = 0; e.reset = now + windowMs; }
+  e.n++;
+  _rl.set(ip, e);
+  if (_rl.size > 2000) {
+    for (const [k, v] of _rl) { if (now > v.reset) _rl.delete(k); }
+  }
+  return e.n <= max;
+}
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers['origin'] || '';
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || origin; // default permissive for dev
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Vary', 'Origin');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+  if (!rateLimit(ip, 5)) {
+    return res.status(429).json({ type: 'error', error: { message: 'Too many requests — please wait a moment.' } });
+  }
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const tavilyKey = process.env.TAVILY_API_KEY;
@@ -80,15 +102,16 @@ export default async function handler(req, res) {
     const prompt = `You are a ${firm || 'McKinsey'} Senior Partner. Generate a focused strategy report on: "${focus}".
 ${ctx ? 'Client context: ' + ctx : ''}${marketIntel}
 
-Use EXACTLY these 5 section headers on their own lines, nothing else before them:
+Respond with ONLY a valid JSON object — no markdown, no code fences, nothing before or after the JSON. Use exactly these keys:
+{
+  "executive_summary": "3–4 sentence overview",
+  "key_findings": "3–4 specific bullet points (prefix each with - )",
+  "strategic_recommendations": "3–4 actionable recommendations (prefix each with - )",
+  "next_steps": "specific 30/60/90-day actions (prefix each with - )",
+  "eli5_summary": "3 plain sentences explaining this to a 10-year-old"
+}
 
-EXECUTIVE SUMMARY
-KEY FINDINGS
-STRATEGIC RECOMMENDATIONS
-NEXT STEPS
-ELI5 SUMMARY
-
-Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FINDINGS: 3–4 specific bullet points grounded in the market data above. STRATEGIC RECOMMENDATIONS: 3–4 specific actionable recommendations. NEXT STEPS: specific 30/60/90-day actions. ELI5 SUMMARY: 3 plain sentences. Use **bold** for key terms. Where relevant, reference specific data points from the market intelligence.${FRAMEWORK_INSTR}`;
+Use **bold** for key terms. Where relevant, reference specific data points from the market intelligence.${FRAMEWORK_INSTR}`;
 
     // ── STEP 4: CALL CLAUDE ──────────────────────────────────────
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -117,8 +140,18 @@ Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FIND
     const text = claudeData.content?.[0]?.text;
     if (!text) return res.status(500).json({ type: 'error', error: { message: 'Empty response from Claude' } });
 
-    // ── STEP 5: RETURN TEXT + SOURCES ────────────────────────────
-    const responsePayload = { text, sources: uniqueSources };
+    // ── STEP 5: PARSE JSON SECTIONS + RETURN ─────────────────────
+    let sections = null;
+    try {
+      // Strip accidental markdown code fences if Claude wraps anyway
+      const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      sections = JSON.parse(clean);
+    } catch {
+      // Fallback: return raw text so the frontend can use its legacy parser
+      console.warn('BizWiz: Claude did not return valid JSON, falling back to raw text');
+    }
+
+    const responsePayload = sections ? { sections, sources: uniqueSources } : { text, sources: uniqueSources };
     if (!searchSucceeded) {
       responsePayload.searchWarning = 'Live market data could not be retrieved. Report is based on model knowledge only.';
     }

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
 <title>BizWiz — Strategy Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -806,32 +807,56 @@ function buildSystem(){
   return `${persona}\n\n${ctx?'CLIENT CONTEXT: '+ctx:'No client context provided — answer in general terms.'}\n\n${modeInstr}${frameworkInstr}\n\nAfter your response, append exactly "ELI5 SUMMARY:" followed by 3–4 simple sentences explaining the same advice for someone with no business background.`;
 }
 
-// ── API CALL ──────────────────────────────────────────────────
-async function callAPI(messages, system, maxTokens){
-  const body = {
-    model: 'claude-sonnet-4-6',
-    max_tokens: maxTokens,
-    messages
-  };
-  // Only include system if non-empty — Anthropic rejects empty string
+// ── API CALL (streaming SSE) ──────────────────────────────────
+async function streamChat(messages, system, maxTokens, onChunk){
+  const body = { model:'claude-sonnet-4-6', max_tokens:maxTokens, messages };
   if(system && system.trim()) body.system = system;
 
   const res = await fetch('/api/chat',{
     method:'POST',
-    headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)
   });
-  const data = await res.json();
-  if(!res.ok || data.type==='error'){
-    throw new Error(data?.error?.message || `HTTP ${res.status}`);
+
+  if(!res.ok){
+    // Non-streaming error response
+    const errData = await res.json().catch(()=>({}));
+    throw new Error(errData?.error?.message || `HTTP ${res.status}`);
   }
-  const text = data.content?.[0]?.text
-    ?? (typeof data.content==='string' ? data.content : null)
-    ?? data.completion
-    ?? data.text
-    ?? null;
-  if(!text) throw new Error(`Unknown response shape: ${JSON.stringify(data).slice(0,120)}`);
-  return text;
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while(true){
+    const {done, value} = await reader.read();
+    if(done) break;
+    buf += decoder.decode(value, {stream:true});
+    const lines = buf.split('\n');
+    buf = lines.pop(); // keep incomplete trailing line
+    for(const line of lines){
+      if(!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if(raw === '[DONE]') return;
+      let ev;
+      try { ev = JSON.parse(raw); } catch { continue; }
+      if(ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta'){
+        onChunk(ev.delta.text);
+      } else if(ev.type === 'error'){
+        throw new Error(ev.error?.message || 'Stream error');
+      }
+    }
+  }
+}
+
+function addStreamingMsg(){
+  const msgs = document.getElementById('chatMsgs');
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `<div class="avatar ai">W</div><div class="msg-body"><div class="bubble" id="streamBody" style="white-space:pre-wrap;min-height:1.5em"></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
 }
 
 // ── CONTEXT GATE ──────────────────────────────────────────────
@@ -914,16 +939,35 @@ async function sendMsg(){
   const btn=document.getElementById('sendBtn');
   btn.disabled=true;
   const typing=addTyping();
+  let streamEl=null;
   try{
-    const fullText=await callAPI(history.map(m=>({role:m.role,content:m.content})),buildSystem(),1500);
-    removeTyping(typing);
+    let fullText='';
+    await streamChat(
+      history.map(m=>({role:m.role,content:m.content})),
+      buildSystem(),
+      1500,
+      chunk=>{
+        // On first chunk: swap typing indicator for live bubble
+        if(!streamEl){
+          removeTyping(typing);
+          streamEl=addStreamingMsg();
+        }
+        fullText+=chunk;
+        const body=document.getElementById('streamBody');
+        if(body) body.textContent=fullText;
+        const msgs=document.getElementById('chatMsgs');
+        if(msgs) msgs.scrollTop=msgs.scrollHeight;
+      }
+    );
+    if(streamEl) streamEl.remove();
+    else removeTyping(typing); // edge case: no chunks received
     const m=fullText.match(/ELI5 SUMMARY:\s*([\s\S]+)$/i);
     const main=m?fullText.slice(0,m.index).trim():fullText;
     const eli5=m?m[1].trim():null;
     history.push({role:'assistant',content:fullText});
     addMsg('assistant',main,eli5);
   }catch(err){
-    removeTyping(typing);
+    if(streamEl) streamEl.remove(); else removeTyping(typing);
     addMsg('assistant',`⚠️ Error: ${err.message}`);
   }
   btn.disabled=false;
@@ -1069,6 +1113,8 @@ function toggleEli5(id){
   if(hint)hint.textContent=isOpen?'Tap to collapse':'Tap to expand';
 }
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(t){return esc(String(t||'')).replace(/"/g,'&quot;');}
+function safeUrl(u){return /^https?:\/\//i.test(u||'')?u:null;}
 function fmt(t){
   // Extract [[FRAMEWORK: Name | Def]] markers before HTML escaping
   const fwBlocks = [];
@@ -1188,7 +1234,7 @@ async function generateReport(){
     }
     stopProgress();
     if (data.searchWarning) toast(data.searchWarning);
-    renderReport(data.text, company, focus, data.sources || []);
+    renderReport(data.sections || data.text, company, focus, data.sources || []);
   }catch(err){
     stopProgress();
     document.getElementById('reportSetup').style.display='flex';
@@ -1197,36 +1243,39 @@ async function generateReport(){
   btn.disabled=false;btn.textContent='⚡ Generate Report';
 }
 
-function renderReport(text,company,focus,sources=[]){
+function renderReport(textOrSections,company,focus,sources=[]){
   const parsed={};
+  let rawText='';
 
-  // Bulletproof parser — pure string search, no regex, cannot throw
-  // Tries uppercase match first, then case-insensitive scan
-  function findSection(haystack, needle){
-    // Try exact match first
-    let idx = haystack.indexOf(needle);
-    if(idx !== -1) return idx;
-    // Try case-insensitive
-    const lower = haystack.toLowerCase();
-    idx = lower.indexOf(needle.toLowerCase());
-    return idx;
+  if(textOrSections && typeof textOrSections==='object'){
+    // JSON mode — map camelCase/snake_case keys from backend to SDEFS uppercase keys
+    const s=textOrSections;
+    parsed['EXECUTIVE SUMMARY']       = s.executive_summary||'';
+    parsed['KEY FINDINGS']            = s.key_findings||'';
+    parsed['STRATEGIC RECOMMENDATIONS']= s.strategic_recommendations||'';
+    parsed['NEXT STEPS']              = s.next_steps||'';
+    parsed['ELI5 SUMMARY']            = s.eli5_summary||'';
+    rawText=SDEFS.map(d=>`${d.key}\n${parsed[d.key]}`).join('\n\n');
+  }else{
+    // Legacy text parser — pure string search, no regex, cannot throw
+    const text=textOrSections||'';
+    rawText=text;
+    function findSection(haystack,needle){
+      let idx=haystack.indexOf(needle);
+      if(idx!==-1)return idx;
+      return haystack.toLowerCase().indexOf(needle.toLowerCase());
+    }
+    const normalized=text.replace(/^#{1,3}\s+/gm,'');
+    SDEFS.forEach((s,i)=>{
+      const idx=findSection(normalized,s.key);
+      if(idx===-1)return;
+      const from=idx+s.key.length;
+      const nexts=SDEFS.slice(i+1).map(n=>findSection(normalized,n.key)).filter(x=>x>from);
+      const end=nexts.length?Math.min(...nexts):normalized.length;
+      parsed[s.key]=normalized.slice(from,end).replace(/^[\s\n:*#]+/,'').trim();
+    });
   }
-
-  // Strip markdown heading prefixes to help matching
-  const normalized = text.replace(/^#{1,3}\s+/gm, '');
-
-  SDEFS.forEach((s, i) => {
-    const idx = findSection(normalized, s.key);
-    if(idx === -1) return;
-    const from = idx + s.key.length;
-    // Find where next section starts
-    const nexts = SDEFS.slice(i+1)
-      .map(n => findSection(normalized, n.key))
-      .filter(x => x > from);
-    const end = nexts.length ? Math.min(...nexts) : normalized.length;
-    parsed[s.key] = normalized.slice(from, end).replace(/^[\s\n:*#]+/, '').trim();
-  });
-  report={company,focus,firm,sections:parsed,raw:text,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+  report={company,focus,firm,sections:parsed,raw:rawText,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
   document.getElementById('reportSetup').style.display='none';
   const rc=document.getElementById('reportContent');
   rc.style.display='block';
@@ -1255,12 +1304,14 @@ function renderReport(text,company,focus,sources=[]){
   // Sources card
   if(sources && sources.length > 0){
     const sCard=document.createElement('div');sCard.className='rcard';
-    const sourceLinks = sources.map(s=>
-      `<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-link">
+    const sourceLinks = sources.map(s=>{
+      const url=safeUrl(s.url);
+      if(!url)return '';
+      return `<a href="${escAttr(url)}" target="_blank" rel="noopener noreferrer" class="source-link">
         <span class="source-icon">🔗</span>
-        <span class="source-title">${s.title}</span>
-      </a>`
-    ).join('');
+        <span class="source-title">${esc(s.title||'')}</span>
+      </a>`;
+    }).join('');
     sCard.innerHTML=`<div class="rcard-hdr"><div class="rcard-icon">🌐</div><div class="rcard-lbl">Sources — Real-Time Research</div></div><div class="rcard-body sources-body">${sourceLinks}</div>`;
     sec.appendChild(sCard);
   }
@@ -1354,8 +1405,20 @@ function exportEmail(){
 // ── CHAT EXPORTS ──────────────────────────────────────────────
 function saveChat(){
   if(!history.length)return;
-  lsSet('bizwiz_chat',JSON.stringify({history,firm,date:new Date().toISOString()}));
-  toast('Chat saved ✓');
+  const MAX_BYTES=200000; // 200 KB cap to stay well under 5 MB quota
+  let h=history;
+  let payload=JSON.stringify({history:h,firm,date:new Date().toISOString()});
+  if(payload.length>MAX_BYTES){
+    // Trim oldest messages until under limit
+    while(h.length>2&&payload.length>MAX_BYTES){
+      h=h.slice(2); // drop oldest user+assistant pair
+      payload=JSON.stringify({history:h,firm,date:new Date().toISOString()});
+    }
+    toast('Chat saved (oldest messages trimmed to fit) ✓');
+  }else{
+    toast('Chat saved ✓');
+  }
+  lsSet('bizwiz_chat',payload);
 }
 function exportChatTXT(){
   if(!history.length)return;
