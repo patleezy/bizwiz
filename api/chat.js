@@ -10,6 +10,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+    const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-6'];
+    if (body.model && !ALLOWED_MODELS.includes(body.model)) {
+      return res.status(400).json({ type: 'error', error: { type: 'invalid_request', message: 'Invalid model' } });
+    }
+    if (!Array.isArray(body.messages) || body.messages.length === 0) {
+      return res.status(400).json({ type: 'error', error: { type: 'invalid_request', message: 'messages must be a non-empty array' } });
+    }
+    if (body.max_tokens && (typeof body.max_tokens !== 'number' || body.max_tokens > 4096)) {
+      return res.status(400).json({ type: 'error', error: { type: 'invalid_request', message: 'max_tokens must be a number ≤ 4096' } });
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -17,7 +30,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
         'x-api-key': apiKey,
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();

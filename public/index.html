@@ -657,6 +657,9 @@ function closeMenu(){
   document.getElementById('menuDrawer').classList.remove('open');
   document.getElementById('menuOverlay').classList.remove('show');
 }
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeMenu();
+});
 
 // ── THEME ─────────────────────────────────────────────────────
 function toggleTheme(){
@@ -1071,7 +1074,7 @@ function fmt(t){
   const fwBlocks = [];
   t = t.replace(/\[\[FRAMEWORK:\s*([^|]+)\|([^\]]+)\]\]/g, (_, name, def) => {
     const idx = fwBlocks.length;
-    fwBlocks.push(`<div class="fw-callout"><span class="fw-callout-icon">💡</span><div class="fw-callout-body"><strong class="fw-callout-name">${name.trim()}</strong><span class="fw-callout-label">What this means</span><span class="fw-callout-def">${def.trim()}</span></div></div>`);
+    fwBlocks.push(`<div class="fw-callout"><span class="fw-callout-icon">💡</span><div class="fw-callout-body"><strong class="fw-callout-name">${esc(name.trim())}</strong><span class="fw-callout-label">What this means</span><span class="fw-callout-def">${esc(def.trim())}</span></div></div>`);
     return `\x00FW${idx}\x00`;
   });
   // Apply bold before escaping so ** markers survive
@@ -1184,6 +1187,7 @@ async function generateReport(){
       throw new Error(data?.error?.message || `HTTP ${res.status}`);
     }
     stopProgress();
+    if (data.searchWarning) toast(data.searchWarning);
     renderReport(data.text, company, focus, data.sources || []);
   }catch(err){
     stopProgress();

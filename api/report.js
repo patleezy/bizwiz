@@ -18,6 +18,20 @@ export default async function handler(req, res) {
 
     if (!focus) return res.status(400).json({ type: 'error', error: { message: 'Missing report focus' } });
 
+    const VALID_FIRMS = ['McKinsey', 'Bain', 'BCG', 'Deloitte'];
+    if (firm && !VALID_FIRMS.includes(firm)) {
+      return res.status(400).json({ type: 'error', error: { message: 'Invalid firm value' } });
+    }
+    if (typeof focus === 'string' && focus.length > 500) {
+      return res.status(400).json({ type: 'error', error: { message: 'Focus too long (max 500 chars)' } });
+    }
+    if (company && typeof company === 'string' && company.length > 200) {
+      return res.status(400).json({ type: 'error', error: { message: 'Company name too long (max 200 chars)' } });
+    }
+    if (ctx && typeof ctx === 'string' && ctx.length > 2000) {
+      return res.status(400).json({ type: 'error', error: { message: 'Context too long (max 2000 chars)' } });
+    }
+
     const FRAMEWORK_INSTR = explainFrameworks
       ? `\n\nWhenever you mention a named consulting framework, model, or methodology, immediately follow it with a parenthetical plain-English definition in italics. Example: "BCG's Growth-Share Matrix *(a 2x2 tool that classifies products by market share and growth rate)*". One sentence max.`
       : '';
@@ -56,6 +70,8 @@ export default async function handler(req, res) {
       arr.findIndex(x => x.url === s.url) === i
     ).slice(0, 6);
 
+    const searchSucceeded = searchResults.some(r => r.status === 'fulfilled' && r.value?.results?.length > 0);
+
     // ── STEP 3: BUILD CLAUDE PROMPT ──────────────────────────────
     const marketIntel = searchContext.length > 0
       ? `\n\nREAL-TIME MARKET INTELLIGENCE (use this to ground your analysis):\n${searchContext.join('\n\n')}`
@@ -84,7 +100,7 @@ Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FIND
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
+        max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -102,7 +118,11 @@ Keep each section tight and punchy. EXECUTIVE SUMMARY: 3–4 sentences. KEY FIND
     if (!text) return res.status(500).json({ type: 'error', error: { message: 'Empty response from Claude' } });
 
     // ── STEP 5: RETURN TEXT + SOURCES ────────────────────────────
-    return res.status(200).json({ text, sources: uniqueSources });
+    const responsePayload = { text, sources: uniqueSources };
+    if (!searchSucceeded) {
+      responsePayload.searchWarning = 'Live market data could not be retrieved. Report is based on model knowledge only.';
+    }
+    return res.status(200).json(responsePayload);
 
   } catch (err) {
     console.error('BizWiz report error:', err);
