@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
 <title>BizWiz — Strategy Intelligence</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── SELF-HOSTED FONTS ──────────────────────────────────────── */
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/cormorant-garamond-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/dm-mono-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/dm-mono-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/dm-sans-latin-300-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/dm-sans-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/dm-sans-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/dm-sans-latin-600-normal.woff2') format('woff2');}
+</style>
 <style>
 /* ── THEME ─────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
@@ -348,20 +359,20 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
 <!-- SLIDE-IN MENU -->
 <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-<div class="menu-drawer" id="menuDrawer">
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="menu-header">
     <span class="menu-title">Settings</span>
-    <button class="menu-close" onclick="closeMenu()">✕</button>
+    <button class="menu-close" onclick="closeMenu()" aria-label="Close settings">✕</button>
   </div>
 
   <div class="menu-section">
     <div class="menu-section-label">Accent Color</div>
-    <div class="menu-color-row">
-      <div class="menu-swatch active" data-theme="gold"     style="background:#c8a96e" onclick="setColorTheme('gold')"     title="Gold"></div>
-      <div class="menu-swatch"        data-theme="emerald"  style="background:#4ade80" onclick="setColorTheme('emerald')"  title="Emerald"></div>
-      <div class="menu-swatch"        data-theme="sapphire" style="background:#60a5fa" onclick="setColorTheme('sapphire')" title="Sapphire"></div>
-      <div class="menu-swatch"        data-theme="rose"     style="background:#fb7185" onclick="setColorTheme('rose')"     title="Rose"></div>
-      <div class="menu-swatch"        data-theme="violet"   style="background:#a78bfa" onclick="setColorTheme('violet')"   title="Violet"></div>
+    <div class="menu-color-row" role="radiogroup" aria-label="Accent color">
+      <div class="menu-swatch active" role="radio" tabindex="0" aria-label="Gold"     data-theme="gold"     style="background:#c8a96e" onclick="setColorTheme('gold')"     title="Gold"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Emerald"  data-theme="emerald"  style="background:#4ade80" onclick="setColorTheme('emerald')"  title="Emerald"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Sapphire" data-theme="sapphire" style="background:#60a5fa" onclick="setColorTheme('sapphire')" title="Sapphire"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Rose"     data-theme="rose"     style="background:#fb7185" onclick="setColorTheme('rose')"     title="Rose"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Violet"   data-theme="violet"   style="background:#a78bfa" onclick="setColorTheme('violet')"   title="Violet"></div>
     </div>
   </div>
 
@@ -410,18 +421,18 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <button class="sidebar-close" onclick="toggleSidebar()" title="Close">✕</button>
+    <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">✕</button>
 
     <!-- Sample Businesses -->
     <div>
       <div class="sample-label">Try a sample business</div>
       <div class="sample-row">
-        <div class="sample-chip" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
-        <div class="sample-chip" onclick="loadSample('acme')">💣 Acme Corp</div>
-        <div class="sample-chip" onclick="loadSample('starry')">🚀 Stark Industries</div>
-        <div class="sample-chip" onclick="loadSample('pawnee')">📄 Dunder Mifflin</div>
-        <div class="sample-chip" onclick="loadSample('wonka')">🍫 Wonka Candy</div>
-        <div class="sample-chip" onclick="loadSample('lumon')">🪴 Lumon Industries</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('acme')">💣 Acme Corp</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('starry')">🚀 Stark Industries</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('pawnee')">📄 Dunder Mifflin</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('wonka')">🍫 Wonka Candy</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('lumon')">🪴 Lumon Industries</div>
       </div>
     </div>
 
@@ -504,10 +515,10 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         <button class="persona-rec-apply" id="personaRecBtn" onclick="applyRecommendedPersona()">Apply</button>
       </div>
       <div class="persona-grid">
-        <div class="persona-card active" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
-        <div class="persona-card" onclick="setPer(this,'Bain')"><div class="firm-name">Bain</div><div class="firm-desc">Results-first</div></div>
-        <div class="persona-card" onclick="setPer(this,'BCG')"><div class="firm-name">BCG</div><div class="firm-desc">Innovation-led</div></div>
-        <div class="persona-card" onclick="setPer(this,'Deloitte')"><div class="firm-name">Deloitte</div><div class="firm-desc">Ops-focused</div></div>
+        <div class="persona-card active" role="radio" tabindex="0" aria-checked="true"  aria-label="McKinsey — Hypothesis-driven" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="Bain — Results-first"          onclick="setPer(this,'Bain')">    <div class="firm-name">Bain</div>    <div class="firm-desc">Results-first</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="BCG — Innovation-led"           onclick="setPer(this,'BCG')">     <div class="firm-name">BCG</div>     <div class="firm-desc">Innovation-led</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="Deloitte — Ops-focused"         onclick="setPer(this,'Deloitte')"><div class="firm-name">Deloitte</div><div class="firm-desc">Ops-focused</div></div>
       </div>
     </div>
 
@@ -515,19 +526,19 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
   <!-- MAIN -->
   <div class="main">
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('chat')" id="tab-chat">
+    <div class="tabs" role="tablist" aria-label="BizWiz panels">
+      <div class="tab active" role="tab" tabindex="0" aria-selected="true"  aria-controls="panel-chat"   id="tab-chat"   onclick="switchTab('chat')">
         <div class="tab-label">💬 Ask a Question</div>
         <div class="tab-sub">Quick · Conversational</div>
       </div>
-      <div class="tab" onclick="switchTab('report')" id="tab-report">
+      <div class="tab"        role="tab" tabindex="0" aria-selected="false" aria-controls="panel-report" id="tab-report" onclick="switchTab('report')">
         <div class="tab-label">📄 Strategy Report</div>
         <div class="tab-sub">Full doc · Export ready</div>
       </div>
     </div>
 
     <!-- CHAT PANEL -->
-    <div class="chat-panel" id="panel-chat">
+    <div class="chat-panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
       <div class="chat-msgs" id="chatMsgs">
         <div class="welcome">
           <h3>Welcome to BizWiz</h3>
@@ -541,29 +552,29 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <button class="chips-toggle" id="chipsToggle" onclick="toggleChips()">💡 Questions</button>
           <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()">✨ Personalize</button>
           <div class="input-mode-toggle" style="margin-left:auto;">
-            <div class="mopt active" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
+            <div class="mopt active" role="button" tabindex="0" aria-pressed="true" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
             
           </div>
         </div>
         <!-- Chips (collapsed by default) -->
         <div class="chips chips-collapsible" id="chipsContainer">
-          <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
-          <div class="chip" onclick="usePrompt(this)">Analyze my competitive position</div>
-          <div class="chip" onclick="usePrompt(this)">How should I price my product?</div>
-          <div class="chip" onclick="usePrompt(this)">Build a go-to-market plan</div>
-          <div class="chip" onclick="usePrompt(this)">What are my biggest risks?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">How do I grow revenue?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">Analyze my competitive position</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">How should I price my product?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">Build a go-to-market plan</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">What are my biggest risks?</div>
         </div>
         <!-- Input row — full width now -->
         <div class="input-row">
           <textarea class="chat-in" id="chatIn" placeholder="Ask your business question…" rows="1"
             onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send →</button>
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()" aria-label="Send message">Send →</button>
         </div>
       </div>
     </div>
 
     <!-- REPORT PANEL -->
-    <div class="report-panel" id="panel-report">
+    <div class="report-panel" id="panel-report" role="tabpanel" aria-labelledby="tab-report">
 
       <!-- Progress Overlay -->
       <div class="prog-overlay" id="progOverlay">
@@ -634,8 +645,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONSTANTS ─────────────────────────────────────────────────
+const FIRMS = ['McKinsey', 'Bain', 'BCG', 'Deloitte'];
+
 // ── STATE ──────────────────────────────────────────────────────
-let firm = 'McKinsey';
+let firm = FIRMS[0];
 let mode = 'concise';
 let history = [];
 let report = null;
@@ -652,11 +666,41 @@ function toggleMenu(){
   const overlay = document.getElementById('menuOverlay');
   const isOpen = drawer.classList.toggle('open');
   overlay.classList.toggle('show', isOpen);
+  if(isOpen){
+    const first = drawer.querySelector('button:not([disabled]), [tabindex="0"]');
+    if(first) first.focus();
+  } else {
+    document.getElementById('hamburgerBtn').focus();
+  }
 }
 function closeMenu(){
+  const wasOpen = document.getElementById('menuDrawer').classList.contains('open');
   document.getElementById('menuDrawer').classList.remove('open');
   document.getElementById('menuOverlay').classList.remove('show');
+  if(wasOpen) document.getElementById('hamburgerBtn').focus();
 }
+document.addEventListener('keydown', function(e){
+  // Escape closes the settings drawer
+  if(e.key==='Escape'){ closeMenu(); return; }
+
+  // Tab trap — keep focus inside the open drawer
+  if(e.key==='Tab'){
+    const drawer = document.getElementById('menuDrawer');
+    if(!drawer.classList.contains('open')) return;
+    const focusable = [...drawer.querySelectorAll('button:not([disabled]), [tabindex="0"], input:not([disabled])')];
+    if(!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if(e.shiftKey){ if(document.activeElement===first){ e.preventDefault(); last.focus(); } }
+    else { if(document.activeElement===last){ e.preventDefault(); first.focus(); } }
+    return;
+  }
+
+  // Enter / Space activate any element with role="button" or role="radio"
+  if(e.key==='Enter' || e.key===' '){
+    const r = e.target.getAttribute('role');
+    if(r==='button' || r==='radio'){ e.preventDefault(); e.target.click(); }
+  }
+});
 
 // ── THEME ─────────────────────────────────────────────────────
 function toggleTheme(){
@@ -674,8 +718,9 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 
 // ── PERSONA ───────────────────────────────────────────────────
 function setPer(el,f){
-  document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.persona-card').forEach(c=>{c.classList.remove('active');c.setAttribute('aria-checked','false');});
   el.classList.add('active');
+  el.setAttribute('aria-checked','true');
   firm=f;
   // Hide recommendation once user manually picks
   const rec = document.getElementById('personaRec');
@@ -747,7 +792,7 @@ function injectContextNote(companyName){
   if(existing) existing.remove();
   const el = document.createElement('div');
   el.className = 'ctx-switch-note';
-  el.innerHTML = `🏢 Context: <strong>${companyName}</strong>`;
+  el.innerHTML = `🏢 Context: <strong>${esc(companyName)}</strong>`;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -803,32 +848,56 @@ function buildSystem(){
   return `${persona}\n\n${ctx?'CLIENT CONTEXT: '+ctx:'No client context provided — answer in general terms.'}\n\n${modeInstr}${frameworkInstr}\n\nAfter your response, append exactly "ELI5 SUMMARY:" followed by 3–4 simple sentences explaining the same advice for someone with no business background.`;
 }
 
-// ── API CALL ──────────────────────────────────────────────────
-async function callAPI(messages, system, maxTokens){
-  const body = {
-    model: 'claude-sonnet-4-6',
-    max_tokens: maxTokens,
-    messages
-  };
-  // Only include system if non-empty — Anthropic rejects empty string
+// ── API CALL (streaming SSE) ──────────────────────────────────
+async function streamChat(messages, system, maxTokens, onChunk){
+  const body = { model:'claude-sonnet-4-6', max_tokens:maxTokens, messages };
   if(system && system.trim()) body.system = system;
 
   const res = await fetch('/api/chat',{
     method:'POST',
-    headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify(body)
   });
-  const data = await res.json();
-  if(!res.ok || data.type==='error'){
-    throw new Error(data?.error?.message || `HTTP ${res.status}`);
+
+  if(!res.ok){
+    // Non-streaming error response
+    const errData = await res.json().catch(()=>({}));
+    throw new Error(errData?.error?.message || `HTTP ${res.status}`);
   }
-  const text = data.content?.[0]?.text
-    ?? (typeof data.content==='string' ? data.content : null)
-    ?? data.completion
-    ?? data.text
-    ?? null;
-  if(!text) throw new Error(`Unknown response shape: ${JSON.stringify(data).slice(0,120)}`);
-  return text;
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+
+  while(true){
+    const {done, value} = await reader.read();
+    if(done) break;
+    buf += decoder.decode(value, {stream:true});
+    const lines = buf.split('\n');
+    buf = lines.pop(); // keep incomplete trailing line
+    for(const line of lines){
+      if(!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if(raw === '[DONE]') return;
+      let ev;
+      try { ev = JSON.parse(raw); } catch { continue; }
+      if(ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta'){
+        onChunk(ev.delta.text);
+      } else if(ev.type === 'error'){
+        throw new Error(ev.error?.message || 'Stream error');
+      }
+    }
+  }
+}
+
+function addStreamingMsg(){
+  const msgs = document.getElementById('chatMsgs');
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `<div class="avatar ai">W</div><div class="msg-body"><div class="bubble" id="streamBody" style="white-space:pre-wrap;min-height:1.5em"></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
 }
 
 // ── CONTEXT GATE ──────────────────────────────────────────────
@@ -866,8 +935,10 @@ function openSidebarToContext(){
 
 // ── TABS (updated to check nudge on report tab) ────────────────
 function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false');});
+  const activeTab=document.getElementById('tab-'+tab);
+  activeTab.classList.add('active');
+  activeTab.setAttribute('aria-selected','true');
   document.getElementById('panel-chat').style.display=tab==='chat'?'flex':'none';
   const rp=document.getElementById('panel-report');
   tab==='report'?rp.classList.add('active'):rp.classList.remove('active');
@@ -911,16 +982,35 @@ async function sendMsg(){
   const btn=document.getElementById('sendBtn');
   btn.disabled=true;
   const typing=addTyping();
+  let streamEl=null;
   try{
-    const fullText=await callAPI(history.map(m=>({role:m.role,content:m.content})),buildSystem(),1500);
-    removeTyping(typing);
+    let fullText='';
+    await streamChat(
+      history.map(m=>({role:m.role,content:m.content})),
+      buildSystem(),
+      1500,
+      chunk=>{
+        // On first chunk: swap typing indicator for live bubble
+        if(!streamEl){
+          removeTyping(typing);
+          streamEl=addStreamingMsg();
+        }
+        fullText+=chunk;
+        const body=document.getElementById('streamBody');
+        if(body) body.textContent=fullText;
+        const msgs=document.getElementById('chatMsgs');
+        if(msgs) msgs.scrollTop=msgs.scrollHeight;
+      }
+    );
+    if(streamEl) streamEl.remove();
+    else removeTyping(typing); // edge case: no chunks received
     const m=fullText.match(/ELI5 SUMMARY:\s*([\s\S]+)$/i);
     const main=m?fullText.slice(0,m.index).trim():fullText;
     const eli5=m?m[1].trim():null;
     history.push({role:'assistant',content:fullText});
     addMsg('assistant',main,eli5);
   }catch(err){
-    removeTyping(typing);
+    if(streamEl) streamEl.remove(); else removeTyping(typing);
     addMsg('assistant',`⚠️ Error: ${err.message}`);
   }
   btn.disabled=false;
@@ -1066,12 +1156,14 @@ function toggleEli5(id){
   if(hint)hint.textContent=isOpen?'Tap to collapse':'Tap to expand';
 }
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(t){return esc(String(t||'')).replace(/"/g,'&quot;');}
+function safeUrl(u){return /^https?:\/\//i.test(u||'')?u:null;}
 function fmt(t){
   // Extract [[FRAMEWORK: Name | Def]] markers before HTML escaping
   const fwBlocks = [];
   t = t.replace(/\[\[FRAMEWORK:\s*([^|]+)\|([^\]]+)\]\]/g, (_, name, def) => {
     const idx = fwBlocks.length;
-    fwBlocks.push(`<div class="fw-callout"><span class="fw-callout-icon">💡</span><div class="fw-callout-body"><strong class="fw-callout-name">${name.trim()}</strong><span class="fw-callout-label">What this means</span><span class="fw-callout-def">${def.trim()}</span></div></div>`);
+    fwBlocks.push(`<div class="fw-callout"><span class="fw-callout-icon">💡</span><div class="fw-callout-body"><strong class="fw-callout-name">${esc(name.trim())}</strong><span class="fw-callout-label">What this means</span><span class="fw-callout-def">${esc(def.trim())}</span></div></div>`);
     return `\x00FW${idx}\x00`;
   });
   // Apply bold before escaping so ** markers survive
@@ -1184,7 +1276,8 @@ async function generateReport(){
       throw new Error(data?.error?.message || `HTTP ${res.status}`);
     }
     stopProgress();
-    renderReport(data.text, company, focus, data.sources || []);
+    if (data.searchWarning) toast(data.searchWarning);
+    renderReport(data.sections || data.text, company, focus, data.sources || []);
   }catch(err){
     stopProgress();
     document.getElementById('reportSetup').style.display='flex';
@@ -1193,36 +1286,39 @@ async function generateReport(){
   btn.disabled=false;btn.textContent='⚡ Generate Report';
 }
 
-function renderReport(text,company,focus,sources=[]){
+function renderReport(textOrSections,company,focus,sources=[]){
   const parsed={};
+  let rawText='';
 
-  // Bulletproof parser — pure string search, no regex, cannot throw
-  // Tries uppercase match first, then case-insensitive scan
-  function findSection(haystack, needle){
-    // Try exact match first
-    let idx = haystack.indexOf(needle);
-    if(idx !== -1) return idx;
-    // Try case-insensitive
-    const lower = haystack.toLowerCase();
-    idx = lower.indexOf(needle.toLowerCase());
-    return idx;
+  if(textOrSections && typeof textOrSections==='object'){
+    // JSON mode — map camelCase/snake_case keys from backend to SDEFS uppercase keys
+    const s=textOrSections;
+    parsed['EXECUTIVE SUMMARY']       = s.executive_summary||'';
+    parsed['KEY FINDINGS']            = s.key_findings||'';
+    parsed['STRATEGIC RECOMMENDATIONS']= s.strategic_recommendations||'';
+    parsed['NEXT STEPS']              = s.next_steps||'';
+    parsed['ELI5 SUMMARY']            = s.eli5_summary||'';
+    rawText=SDEFS.map(d=>`${d.key}\n${parsed[d.key]}`).join('\n\n');
+  }else{
+    // Legacy text parser — pure string search, no regex, cannot throw
+    const text=textOrSections||'';
+    rawText=text;
+    function findSection(haystack,needle){
+      let idx=haystack.indexOf(needle);
+      if(idx!==-1)return idx;
+      return haystack.toLowerCase().indexOf(needle.toLowerCase());
+    }
+    const normalized=text.replace(/^#{1,3}\s+/gm,'');
+    SDEFS.forEach((s,i)=>{
+      const idx=findSection(normalized,s.key);
+      if(idx===-1)return;
+      const from=idx+s.key.length;
+      const nexts=SDEFS.slice(i+1).map(n=>findSection(normalized,n.key)).filter(x=>x>from);
+      const end=nexts.length?Math.min(...nexts):normalized.length;
+      parsed[s.key]=normalized.slice(from,end).replace(/^[\s\n:*#]+/,'').trim();
+    });
   }
-
-  // Strip markdown heading prefixes to help matching
-  const normalized = text.replace(/^#{1,3}\s+/gm, '');
-
-  SDEFS.forEach((s, i) => {
-    const idx = findSection(normalized, s.key);
-    if(idx === -1) return;
-    const from = idx + s.key.length;
-    // Find where next section starts
-    const nexts = SDEFS.slice(i+1)
-      .map(n => findSection(normalized, n.key))
-      .filter(x => x > from);
-    const end = nexts.length ? Math.min(...nexts) : normalized.length;
-    parsed[s.key] = normalized.slice(from, end).replace(/^[\s\n:*#]+/, '').trim();
-  });
-  report={company,focus,firm,sections:parsed,raw:text,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+  report={company,focus,firm,sections:parsed,raw:rawText,date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
   document.getElementById('reportSetup').style.display='none';
   const rc=document.getElementById('reportContent');
   rc.style.display='block';
@@ -1251,12 +1347,14 @@ function renderReport(text,company,focus,sources=[]){
   // Sources card
   if(sources && sources.length > 0){
     const sCard=document.createElement('div');sCard.className='rcard';
-    const sourceLinks = sources.map(s=>
-      `<a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-link">
+    const sourceLinks = sources.map(s=>{
+      const url=safeUrl(s.url);
+      if(!url)return '';
+      return `<a href="${escAttr(url)}" target="_blank" rel="noopener noreferrer" class="source-link">
         <span class="source-icon">🔗</span>
-        <span class="source-title">${s.title}</span>
-      </a>`
-    ).join('');
+        <span class="source-title">${esc(s.title||'')}</span>
+      </a>`;
+    }).join('');
     sCard.innerHTML=`<div class="rcard-hdr"><div class="rcard-icon">🌐</div><div class="rcard-lbl">Sources — Real-Time Research</div></div><div class="rcard-body sources-body">${sourceLinks}</div>`;
     sec.appendChild(sCard);
   }
@@ -1350,8 +1448,20 @@ function exportEmail(){
 // ── CHAT EXPORTS ──────────────────────────────────────────────
 function saveChat(){
   if(!history.length)return;
-  lsSet('bizwiz_chat',JSON.stringify({history,firm,date:new Date().toISOString()}));
-  toast('Chat saved ✓');
+  const MAX_BYTES=200000; // 200 KB cap to stay well under 5 MB quota
+  let h=history;
+  let payload=JSON.stringify({history:h,firm,date:new Date().toISOString()});
+  if(payload.length>MAX_BYTES){
+    // Trim oldest messages until under limit
+    while(h.length>2&&payload.length>MAX_BYTES){
+      h=h.slice(2); // drop oldest user+assistant pair
+      payload=JSON.stringify({history:h,firm,date:new Date().toISOString()});
+    }
+    toast('Chat saved (oldest messages trimmed to fit) ✓');
+  }else{
+    toast('Chat saved ✓');
+  }
+  lsSet('bizwiz_chat',payload);
 }
 function exportChatTXT(){
   if(!history.length)return;
@@ -1402,8 +1512,8 @@ function dismissDisc(){
 
 // ── PROFILE ───────────────────────────────────────────────────
 // ── MULTI-PROFILE SYSTEM ──────────────────────────────────────
-const PROFILES_KEY = 'bizwiz_profiles'; // array of up to 5 profiles
-const MAX_PROFILES = 5;
+const PROFILES_KEY = 'bizwiz_profiles'; // array of up to 6 profiles
+const MAX_PROFILES = 6;
 
 function getProfiles(){
   try{ return JSON.parse(lsGet(PROFILES_KEY)||'[]'); }catch(e){ return []; }
@@ -1445,7 +1555,7 @@ function renderSavedProfiles(){
   }
   row.innerHTML = profiles.map((p,i) => `
     <div class="saved-profile-chip" onclick="loadSavedProfile(${i})">
-      <span class="pname">🏢 ${p.companyName||'Unnamed'}</span>
+      <span class="pname">🏢 ${esc(p.companyName||'Unnamed')}</span>
       <span class="pdel" onclick="event.stopPropagation();deleteSavedProfile(${i})" title="Delete">✕</span>
     </div>`).join('');
 }
@@ -1521,7 +1631,7 @@ function loadProfile(){
 function clearProfile(){
   ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
   ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
-  firm='McKinsey';
+  firm=FIRMS[0];
   document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
   setChips(DEFAULT_CHIPS);
   setInd('Form cleared','var(--text3)');
