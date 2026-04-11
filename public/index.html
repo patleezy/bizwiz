@@ -751,7 +751,7 @@ function injectContextNote(companyName){
   if(existing) existing.remove();
   const el = document.createElement('div');
   el.className = 'ctx-switch-note';
-  el.innerHTML = `🏢 Context: <strong>${companyName}</strong>`;
+  el.innerHTML = `🏢 Context: <strong>${esc(companyName)}</strong>`;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -1469,8 +1469,8 @@ function dismissDisc(){
 
 // ── PROFILE ───────────────────────────────────────────────────
 // ── MULTI-PROFILE SYSTEM ──────────────────────────────────────
-const PROFILES_KEY = 'bizwiz_profiles'; // array of up to 5 profiles
-const MAX_PROFILES = 5;
+const PROFILES_KEY = 'bizwiz_profiles'; // array of up to 6 profiles
+const MAX_PROFILES = 6;
 
 function getProfiles(){
   try{ return JSON.parse(lsGet(PROFILES_KEY)||'[]'); }catch(e){ return []; }
@@ -1512,7 +1512,7 @@ function renderSavedProfiles(){
   }
   row.innerHTML = profiles.map((p,i) => `
     <div class="saved-profile-chip" onclick="loadSavedProfile(${i})">
-      <span class="pname">🏢 ${p.companyName||'Unnamed'}</span>
+      <span class="pname">🏢 ${esc(p.companyName||'Unnamed')}</span>
       <span class="pdel" onclick="event.stopPropagation();deleteSavedProfile(${i})" title="Delete">✕</span>
     </div>`).join('');
 }
