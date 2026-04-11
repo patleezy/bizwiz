@@ -141,15 +141,7 @@ Use **bold** for key terms. Where relevant, reference specific data points from 
     if (!text) return res.status(500).json({ type: 'error', error: { message: 'Empty response from Claude' } });
 
     // ── STEP 5: PARSE JSON SECTIONS + RETURN ─────────────────────
-    let sections = null;
-    try {
-      // Strip accidental markdown code fences if Claude wraps anyway
-      const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      sections = JSON.parse(clean);
-    } catch {
-      // Fallback: return raw text so the frontend can use its legacy parser
-      console.warn('BizWiz: Claude did not return valid JSON, falling back to raw text');
-    }
+    const sections = parseReportJSON(text);
 
     const responsePayload = sections ? { sections, sources: uniqueSources } : { text, sources: uniqueSources };
     if (!searchSucceeded) {
@@ -208,3 +200,16 @@ async function tavilySearch(query, apiKey) {
   const data = await res.json();
   return { query, results: data.results || [] };
 }
+
+// ── EXPORTED HELPERS (used by tests) ─────────────────────────
+export function parseReportJSON(text) {
+  try {
+    const clean = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    return JSON.parse(clean);
+  } catch {
+    console.warn('BizWiz: Claude did not return valid JSON, falling back to raw text');
+    return null;
+  }
+}
+
+export { buildQueries };

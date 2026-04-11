@@ -3,10 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
 <title>BizWiz — Strategy Intelligence</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── SELF-HOSTED FONTS ──────────────────────────────────────── */
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/cormorant-garamond-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/cormorant-garamond-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/dm-mono-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/dm-mono-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/dm-sans-latin-300-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/dm-sans-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/dm-sans-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'DM Sans';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/dm-sans-latin-600-normal.woff2') format('woff2');}
+</style>
 <style>
 /* ── THEME ─────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
@@ -349,20 +359,20 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
 <!-- SLIDE-IN MENU -->
 <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-<div class="menu-drawer" id="menuDrawer">
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="menu-header">
     <span class="menu-title">Settings</span>
-    <button class="menu-close" onclick="closeMenu()">✕</button>
+    <button class="menu-close" onclick="closeMenu()" aria-label="Close settings">✕</button>
   </div>
 
   <div class="menu-section">
     <div class="menu-section-label">Accent Color</div>
-    <div class="menu-color-row">
-      <div class="menu-swatch active" data-theme="gold"     style="background:#c8a96e" onclick="setColorTheme('gold')"     title="Gold"></div>
-      <div class="menu-swatch"        data-theme="emerald"  style="background:#4ade80" onclick="setColorTheme('emerald')"  title="Emerald"></div>
-      <div class="menu-swatch"        data-theme="sapphire" style="background:#60a5fa" onclick="setColorTheme('sapphire')" title="Sapphire"></div>
-      <div class="menu-swatch"        data-theme="rose"     style="background:#fb7185" onclick="setColorTheme('rose')"     title="Rose"></div>
-      <div class="menu-swatch"        data-theme="violet"   style="background:#a78bfa" onclick="setColorTheme('violet')"   title="Violet"></div>
+    <div class="menu-color-row" role="radiogroup" aria-label="Accent color">
+      <div class="menu-swatch active" role="radio" tabindex="0" aria-label="Gold"     data-theme="gold"     style="background:#c8a96e" onclick="setColorTheme('gold')"     title="Gold"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Emerald"  data-theme="emerald"  style="background:#4ade80" onclick="setColorTheme('emerald')"  title="Emerald"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Sapphire" data-theme="sapphire" style="background:#60a5fa" onclick="setColorTheme('sapphire')" title="Sapphire"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Rose"     data-theme="rose"     style="background:#fb7185" onclick="setColorTheme('rose')"     title="Rose"></div>
+      <div class="menu-swatch"        role="radio" tabindex="0" aria-label="Violet"   data-theme="violet"   style="background:#a78bfa" onclick="setColorTheme('violet')"   title="Violet"></div>
     </div>
   </div>
 
@@ -411,18 +421,18 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <button class="sidebar-close" onclick="toggleSidebar()" title="Close">✕</button>
+    <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">✕</button>
 
     <!-- Sample Businesses -->
     <div>
       <div class="sample-label">Try a sample business</div>
       <div class="sample-row">
-        <div class="sample-chip" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
-        <div class="sample-chip" onclick="loadSample('acme')">💣 Acme Corp</div>
-        <div class="sample-chip" onclick="loadSample('starry')">🚀 Stark Industries</div>
-        <div class="sample-chip" onclick="loadSample('pawnee')">📄 Dunder Mifflin</div>
-        <div class="sample-chip" onclick="loadSample('wonka')">🍫 Wonka Candy</div>
-        <div class="sample-chip" onclick="loadSample('lumon')">🪴 Lumon Industries</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('krusty')">🍔 Krusty Burger</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('acme')">💣 Acme Corp</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('starry')">🚀 Stark Industries</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('pawnee')">📄 Dunder Mifflin</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('wonka')">🍫 Wonka Candy</div>
+        <div class="sample-chip" role="button" tabindex="0" onclick="loadSample('lumon')">🪴 Lumon Industries</div>
       </div>
     </div>
 
@@ -505,10 +515,10 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
         <button class="persona-rec-apply" id="personaRecBtn" onclick="applyRecommendedPersona()">Apply</button>
       </div>
       <div class="persona-grid">
-        <div class="persona-card active" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
-        <div class="persona-card" onclick="setPer(this,'Bain')"><div class="firm-name">Bain</div><div class="firm-desc">Results-first</div></div>
-        <div class="persona-card" onclick="setPer(this,'BCG')"><div class="firm-name">BCG</div><div class="firm-desc">Innovation-led</div></div>
-        <div class="persona-card" onclick="setPer(this,'Deloitte')"><div class="firm-name">Deloitte</div><div class="firm-desc">Ops-focused</div></div>
+        <div class="persona-card active" role="radio" tabindex="0" aria-checked="true"  aria-label="McKinsey — Hypothesis-driven" onclick="setPer(this,'McKinsey')"><div class="firm-name">McKinsey</div><div class="firm-desc">Hypothesis-driven</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="Bain — Results-first"          onclick="setPer(this,'Bain')">    <div class="firm-name">Bain</div>    <div class="firm-desc">Results-first</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="BCG — Innovation-led"           onclick="setPer(this,'BCG')">     <div class="firm-name">BCG</div>     <div class="firm-desc">Innovation-led</div></div>
+        <div class="persona-card"        role="radio" tabindex="0" aria-checked="false" aria-label="Deloitte — Ops-focused"         onclick="setPer(this,'Deloitte')"><div class="firm-name">Deloitte</div><div class="firm-desc">Ops-focused</div></div>
       </div>
     </div>
 
@@ -516,19 +526,19 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 
   <!-- MAIN -->
   <div class="main">
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('chat')" id="tab-chat">
+    <div class="tabs" role="tablist" aria-label="BizWiz panels">
+      <div class="tab active" role="tab" tabindex="0" aria-selected="true"  aria-controls="panel-chat"   id="tab-chat"   onclick="switchTab('chat')">
         <div class="tab-label">💬 Ask a Question</div>
         <div class="tab-sub">Quick · Conversational</div>
       </div>
-      <div class="tab" onclick="switchTab('report')" id="tab-report">
+      <div class="tab"        role="tab" tabindex="0" aria-selected="false" aria-controls="panel-report" id="tab-report" onclick="switchTab('report')">
         <div class="tab-label">📄 Strategy Report</div>
         <div class="tab-sub">Full doc · Export ready</div>
       </div>
     </div>
 
     <!-- CHAT PANEL -->
-    <div class="chat-panel" id="panel-chat">
+    <div class="chat-panel" id="panel-chat" role="tabpanel" aria-labelledby="tab-chat">
       <div class="chat-msgs" id="chatMsgs">
         <div class="welcome">
           <h3>Welcome to BizWiz</h3>
@@ -542,29 +552,29 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
           <button class="chips-toggle" id="chipsToggle" onclick="toggleChips()">💡 Questions</button>
           <button class="chips-ai-btn" id="personalizeBtn" onclick="personalizeChips()">✨ Personalize</button>
           <div class="input-mode-toggle" style="margin-left:auto;">
-            <div class="mopt active" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
+            <div class="mopt active" role="button" tabindex="0" aria-pressed="true" onclick="setMode(this,'concise')" title="Brief — short bullets">Brief</div>
             
           </div>
         </div>
         <!-- Chips (collapsed by default) -->
         <div class="chips chips-collapsible" id="chipsContainer">
-          <div class="chip" onclick="usePrompt(this)">How do I grow revenue?</div>
-          <div class="chip" onclick="usePrompt(this)">Analyze my competitive position</div>
-          <div class="chip" onclick="usePrompt(this)">How should I price my product?</div>
-          <div class="chip" onclick="usePrompt(this)">Build a go-to-market plan</div>
-          <div class="chip" onclick="usePrompt(this)">What are my biggest risks?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">How do I grow revenue?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">Analyze my competitive position</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">How should I price my product?</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">Build a go-to-market plan</div>
+          <div class="chip" role="button" tabindex="0" onclick="usePrompt(this)">What are my biggest risks?</div>
         </div>
         <!-- Input row — full width now -->
         <div class="input-row">
           <textarea class="chat-in" id="chatIn" placeholder="Ask your business question…" rows="1"
             onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send →</button>
+          <button class="send-btn" id="sendBtn" onclick="sendMsg()" aria-label="Send message">Send →</button>
         </div>
       </div>
     </div>
 
     <!-- REPORT PANEL -->
-    <div class="report-panel" id="panel-report">
+    <div class="report-panel" id="panel-report" role="tabpanel" aria-labelledby="tab-report">
 
       <!-- Progress Overlay -->
       <div class="prog-overlay" id="progOverlay">
@@ -635,8 +645,11 @@ textarea{resize:vertical;min-height:80px;font-size:16px;}
 <div class="toast" id="toast"></div>
 
 <script>
+// ── CONSTANTS ─────────────────────────────────────────────────
+const FIRMS = ['McKinsey', 'Bain', 'BCG', 'Deloitte'];
+
 // ── STATE ──────────────────────────────────────────────────────
-let firm = 'McKinsey';
+let firm = FIRMS[0];
 let mode = 'concise';
 let history = [];
 let report = null;
@@ -653,13 +666,40 @@ function toggleMenu(){
   const overlay = document.getElementById('menuOverlay');
   const isOpen = drawer.classList.toggle('open');
   overlay.classList.toggle('show', isOpen);
+  if(isOpen){
+    const first = drawer.querySelector('button:not([disabled]), [tabindex="0"]');
+    if(first) first.focus();
+  } else {
+    document.getElementById('hamburgerBtn').focus();
+  }
 }
 function closeMenu(){
+  const wasOpen = document.getElementById('menuDrawer').classList.contains('open');
   document.getElementById('menuDrawer').classList.remove('open');
   document.getElementById('menuOverlay').classList.remove('show');
+  if(wasOpen) document.getElementById('hamburgerBtn').focus();
 }
 document.addEventListener('keydown', function(e){
-  if(e.key==='Escape') closeMenu();
+  // Escape closes the settings drawer
+  if(e.key==='Escape'){ closeMenu(); return; }
+
+  // Tab trap — keep focus inside the open drawer
+  if(e.key==='Tab'){
+    const drawer = document.getElementById('menuDrawer');
+    if(!drawer.classList.contains('open')) return;
+    const focusable = [...drawer.querySelectorAll('button:not([disabled]), [tabindex="0"], input:not([disabled])')];
+    if(!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if(e.shiftKey){ if(document.activeElement===first){ e.preventDefault(); last.focus(); } }
+    else { if(document.activeElement===last){ e.preventDefault(); first.focus(); } }
+    return;
+  }
+
+  // Enter / Space activate any element with role="button" or role="radio"
+  if(e.key==='Enter' || e.key===' '){
+    const r = e.target.getAttribute('role');
+    if(r==='button' || r==='radio'){ e.preventDefault(); e.target.click(); }
+  }
 });
 
 // ── THEME ─────────────────────────────────────────────────────
@@ -678,8 +718,9 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 
 // ── PERSONA ───────────────────────────────────────────────────
 function setPer(el,f){
-  document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.persona-card').forEach(c=>{c.classList.remove('active');c.setAttribute('aria-checked','false');});
   el.classList.add('active');
+  el.setAttribute('aria-checked','true');
   firm=f;
   // Hide recommendation once user manually picks
   const rec = document.getElementById('personaRec');
@@ -894,8 +935,10 @@ function openSidebarToContext(){
 
 // ── TABS (updated to check nudge on report tab) ────────────────
 function switchTab(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false');});
+  const activeTab=document.getElementById('tab-'+tab);
+  activeTab.classList.add('active');
+  activeTab.setAttribute('aria-selected','true');
   document.getElementById('panel-chat').style.display=tab==='chat'?'flex':'none';
   const rp=document.getElementById('panel-report');
   tab==='report'?rp.classList.add('active'):rp.classList.remove('active');
@@ -1588,7 +1631,7 @@ function loadProfile(){
 function clearProfile(){
   ['companyName','challenge'].forEach(id=>document.getElementById(id).value='');
   ['industry','stage','revenue'].forEach(id=>document.getElementById(id).value='');
-  firm='McKinsey';
+  firm=FIRMS[0];
   document.querySelectorAll('.persona-card').forEach((c,i)=>c.classList.toggle('active',i===0));
   setChips(DEFAULT_CHIPS);
   setInd('Form cleared','var(--text3)');
