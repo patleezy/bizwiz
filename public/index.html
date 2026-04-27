@@ -1440,7 +1440,7 @@ function exportCSV(){
 }
 function exportEmail(){
   if(!report){toast('Generate a report first.');return;}
-  const body=encodeURIComponent(`${report.focus} — Strategy Brief\n${report.firm} | ${report.date}\n\nEXECUTIVE SUMMARY\n${report.sections['EXECUTIVE SUMMARY']||''}\n\nSTRATEGIC RECOMMENDATIONS\n${report.sections['STRATEGIC RECOMMENDATIONS']||''}\n\nPLAIN ENGLISH\n${report.sections['ELI5 SUMMARY']||''}\n\n— BizWiz Strategy AI`);
+  const body=encodeURIComponent(`${report.focus} — Strategy Brief\n${report.firm} | ${report.date}\n\nEXECUTIVE SUMMARY\n${report.sections['EXECUTIVE SUMMARY']||''}\n\nSTRATEGIC RECOMMENDATIONS\n${report.sections['STRATEGIC RECOMMENDATIONS']||''}\n\nNEXT STEPS\n${report.sections['NEXT STEPS']||''}\n\nPLAIN ENGLISH\n${report.sections['ELI5 SUMMARY']||''}\n\n— BizWiz Strategy AI`);
   window.location.href=`mailto:?subject=${encodeURIComponent(`Strategy Brief: ${report.focus} — ${report.company}`)}&body=${body}`;
   toast('Email client opened ✓');
 }
@@ -1687,6 +1687,12 @@ function updateChipsFromProfile(){
   } else {
     setChips(DEFAULT_CHIPS);
   }
+}
+
+async function callAPI(messages, system, maxTokens) {
+  let text = '';
+  await streamChat(messages, system, maxTokens, chunk => { text += chunk; });
+  return text;
 }
 
 async function personalizeChips(){
