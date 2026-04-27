@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-    const ALLOWED_MODELS = ['claude-sonnet-4-6-20250514', 'claude-haiku-4-5-20251001', 'claude-opus-4-6'];
+    const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-6'];
     if (body.model && !ALLOWED_MODELS.includes(body.model)) {
       return res.status(400).json({ type: 'error', error: { type: 'invalid_request', message: 'Invalid model' } });
     }
