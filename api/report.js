@@ -123,7 +123,7 @@ Use **bold** for key terms. Where relevant, reference specific data points from 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3000,
+        max_tokens: 5000,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
