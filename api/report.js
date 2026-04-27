@@ -122,7 +122,7 @@ Use **bold** for key terms. Where relevant, reference specific data points from 
         'x-api-key': anthropicKey,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       }),

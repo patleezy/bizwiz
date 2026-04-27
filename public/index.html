@@ -850,7 +850,7 @@ function buildSystem(){
 
 // ── API CALL (streaming SSE) ──────────────────────────────────
 async function streamChat(messages, system, maxTokens, onChunk){
-  const body = { model:'claude-sonnet-4-6-20250514', max_tokens:maxTokens, messages };
+  const body = { model:'claude-sonnet-4-6', max_tokens:maxTokens, messages };
   if(system && system.trim()) body.system = system;
 
   const res = await fetch('/api/chat',{
